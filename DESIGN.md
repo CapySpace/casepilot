@@ -211,6 +211,11 @@ and utility bars. Nothing is crowded and nothing floats unanchored.
 >
 > So `rounded-lg` is 8px, not 16px. Read the table, not the name.
 >
+> The §5 spacing scale is exposed as `gap-md`, `px-lg`, `py-xl` and so on, matching the names above.
+> Because those share Tailwind's t-shirt names they also shadow its container scale, so `max-w-md`
+> is `1rem` here rather than the 28rem Tailwind would give you. Widths take a `--container-*` token
+> (`max-w-auth-card`) or a numeric step.
+>
 > The §3 type scale is exposed with names that do match: `text-display`, `text-headline-lg`,
 > `text-headline-md`, `text-headline-sm`, `text-title-lg`, `text-body-lg`, `text-body-md`,
 > `text-body-sm`, `text-label-md`, `text-label-sm`. Each carries its own line height, tracking and

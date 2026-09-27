@@ -176,6 +176,10 @@ jwt_expiry = 3600
 # JWT issuer URL. If not set, defaults to auth.external_url.
 # jwt_issuer = ""
 # Path to JWT signing key. DO NOT commit your signing keys file to git.
+# Leave this unset. The CLI then issues an asymmetric ES256 key, which is what lets the proxy's
+# `getClaims()` verify a token locally against a cached JWKS. Point this at a symmetric (`oct`) key
+# and every claims check becomes a round trip to the auth server — on every request, including
+# prefetches — quietly breaking ADR-0002's "no network round-trip" property with nothing failing.
 # signing_keys_path = "./signing_keys.json"
 # If disabled, the refresh token will never expire.
 enable_refresh_token_rotation = true

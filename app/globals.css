@@ -120,7 +120,11 @@
   --radius-3xl: 1.5rem;
   --radius-4xl: 1.5rem;
 
-  /* DESIGN.md §5's 8px rhythm, named as it is there. */
+  /* DESIGN.md §5's 8px rhythm, named as it is there.
+   *
+   * Careful: these share Tailwind's t-shirt names, so they shadow its container scale. `gap-md` and
+   * `px-lg` are these values, but so are `max-w-md` and `w-lg` — `max-w-md` is 1rem here, not the
+   * 28rem you may expect. For a width, use a `--container-*` token below or a `max-w-<number>`. */
   --spacing-2xs: 0.25rem;
   --spacing-xs: 0.5rem;
   --spacing-sm: 0.75rem;
@@ -128,6 +132,10 @@
   --spacing-lg: 1.5rem;
   --spacing-xl: 2rem;
   --spacing-2xl: 3rem;
+
+  /* The authentication screens' column width, taken from the designs. Named because all five of
+   * them share it, and because a width token cannot live in the spacing scale above. */
+  --container-auth-card: 27.5rem;
 
   /* Level 1 elevation: a hairline border plus an ambient navy-tinted shadow "so soft it reads as a
    * held breath rather than a lift" (DESIGN.md §4). */

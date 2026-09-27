@@ -71,11 +71,14 @@ supabase db reset   # rebuild the local database from scratch
 | Path                | What it holds                                                         |
 | ------------------- | --------------------------------------------------------------------- |
 | `app/`              | Routes, pages and Server Actions                                      |
+| `proxy.ts`          | Default-deny request interception. Runs on every route                |
 | `components/ui/`    | shadcn/ui components, themed from `DESIGN.md`                         |
+| `lib/auth/`         | The session boundary, the public route list and the message catalogue |
 | `lib/supabase/`     | Client factories for browser, server and proxy context                |
 | `supabase/`         | Local stack configuration and email templates                         |
 | `tests/unit/`       | Vitest — pure functions only                                          |
 | `tests/e2e/`        | Playwright — whole flows against the real stack                       |
+| `tests/support/`    | Seeding helpers. The only place the secret key is used                |
 | `CONTEXT.md`        | The glossary. Read before naming anything                             |
 | `DESIGN.md`         | The design system. Read before building any interface                 |
 | `docs/adr/`         | Architecture decisions, including why authentication is enforced twice |
