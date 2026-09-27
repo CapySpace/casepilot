@@ -8,7 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 
-import { FormAlert, PasswordField, PasswordRuleHint, TextField } from "../_components/fields";
+import { FormAlert, TextField } from "@/components/form/fields";
+
+import { PasswordField, PasswordRuleHint } from "../_components/fields";
 import { signUp, type SignUpState } from "./actions";
 
 const initialState: SignUpState = {

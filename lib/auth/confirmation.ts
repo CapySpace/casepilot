@@ -1,5 +1,7 @@
 import type { EmailOtpType } from "@supabase/supabase-js";
 
+import { AUTHENTICATED_HOME } from "./routes";
+
 /**
  * The two token types CasePilot issues. Both arrive at the same confirmation endpoint and are told
  * apart by this, exactly as the email templates write them.
@@ -73,5 +75,5 @@ export function parseConfirmationLink(params: URLSearchParams): ConfirmationLink
 
   if (!tokenHash || !type || !isIssuedType(type)) return null;
 
-  return { tokenHash, type, next: safeNext(params.get("next")) };
+  return { tokenHash, type, next: safeNext(params.get("next"), AUTHENTICATED_HOME) };
 }

@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
 
+import { AUTHENTICATED_HOME } from "@/lib/auth/routes";
+
 import { formError, signIn } from "../support/flows";
 import { createUnverifiedUser, createVerifiedUser } from "../support/users";
 
@@ -8,7 +10,7 @@ test("a verified User signs in and lands in the authenticated area", async ({ pa
 
   await signIn(page, user);
 
-  await expect(page).toHaveURL("/");
+  await expect(page).toHaveURL(AUTHENTICATED_HOME);
   // Whose session is active has to be legible, not inferred — this is a shared-machine problem.
   await expect(page.getByText(user.email)).toBeVisible();
 });
@@ -18,7 +20,7 @@ test("a signed-in User can still reach sign-in, to come back as somebody else", 
 }) => {
   const user = await createVerifiedUser();
   await signIn(page, user);
-  await expect(page).toHaveURL("/");
+  await expect(page).toHaveURL(AUTHENTICATED_HOME);
 
   await page.goto("/sign-in");
 
@@ -56,7 +58,7 @@ test("an unverified User cannot sign in", async ({ page }) => {
 });
 
 test("a signed-out visitor opening a protected page is sent to sign-in", async ({ page }) => {
-  await page.goto("/");
+  await page.goto(AUTHENTICATED_HOME);
 
   await expect(page).toHaveURL("/sign-in");
 });
@@ -65,12 +67,12 @@ test("the redirect happens before any protected content is sent", async ({ page 
   // Landing on /sign-in is not enough: a page that renders and *then* redirects has already put
   // the content on the wire. Asking for it without following the redirect is the only way to see
   // the difference.
-  const response = await page.request.get("/", { maxRedirects: 0 });
+  const response = await page.request.get(AUTHENTICATED_HOME, { maxRedirects: 0 });
 
   expect(response.status()).toBeGreaterThanOrEqual(300);
   expect(response.status()).toBeLessThan(400);
   expect(response.headers()["location"]).toContain("/sign-in");
-  expect(await response.text()).not.toContain("You are signed in");
+  expect(await response.text()).not.toContain("My Projects");
 });
 
 test("a route nobody has declared public is protected by default", async ({ page }) => {

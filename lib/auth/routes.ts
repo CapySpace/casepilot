@@ -7,6 +7,15 @@
  *
  * Static assets are not listed. They never reach the proxy at all; its matcher excludes them.
  */
+/**
+ * Where a User goes once CasePilot knows who they are: their Projects.
+ *
+ * Named once because three places send somebody here — signing in, following a confirmation link,
+ * and opening `/` — and a landing page that three files disagree about is a landing page that moves
+ * when only two of them are updated.
+ */
+export const AUTHENTICATED_HOME = "/projects";
+
 export const PUBLIC_PATHS = [
   "/sign-in",
   "/sign-up",

@@ -1,5 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 
+import { AUTHENTICATED_HOME } from "@/lib/auth/routes";
+
 import { asSomebodyElse, confirmationUrl, formError, signIn, signOut } from "../support/flows";
 import {
   createVerifiedUser,
@@ -37,12 +39,12 @@ test("a User recovers their password and signs in with the new one", async ({ pa
   await expect(page).toHaveURL("/reset-password");
 
   await chooseNewPassword(page, NEW_PASSWORD);
-  await expect(page).toHaveURL("/");
+  await expect(page).toHaveURL(AUTHENTICATED_HOME);
 
   await signOut(page);
   await signIn(page, { email: user.email, password: NEW_PASSWORD });
 
-  await expect(page).toHaveURL("/");
+  await expect(page).toHaveURL(AUTHENTICATED_HOME);
   await expect(page.getByText(user.email)).toBeVisible();
 });
 
@@ -50,7 +52,7 @@ test("the old password stops working", async ({ page }) => {
   const user = await createVerifiedUser();
   await page.goto(recoveryUrl(await mintRecoveryToken(user.email)));
   await chooseNewPassword(page, NEW_PASSWORD);
-  await expect(page).toHaveURL("/");
+  await expect(page).toHaveURL(AUTHENTICATED_HOME);
   await signOut(page);
 
   await signIn(page, user);
@@ -143,7 +145,7 @@ test("a used reset link cannot be replayed by somebody else", async ({ page }) =
   const tokenHash = await mintRecoveryToken(user.email);
   await page.goto(recoveryUrl(tokenHash));
   await chooseNewPassword(page, NEW_PASSWORD);
-  await expect(page).toHaveURL("/");
+  await expect(page).toHaveURL(AUTHENTICATED_HOME);
 
   const theirPage = await asSomebodyElse(page, recoveryUrl(tokenHash));
 
@@ -160,7 +162,7 @@ test("a used reset link cannot be replayed by somebody else", async ({ page }) =
 test("a signed-in User cannot set a new password without following a link", async ({ page }) => {
   const user = await createVerifiedUser();
   await signIn(page, user);
-  await expect(page).toHaveURL("/");
+  await expect(page).toHaveURL(AUTHENTICATED_HOME);
 
   await page.goto("/reset-password");
 
@@ -176,7 +178,7 @@ test("a signed-in User cannot set a new password without following a link", asyn
 test("a signed-in User cannot forge a recovery link to reach the form", async ({ page }) => {
   const user = await createVerifiedUser();
   await signIn(page, user);
-  await expect(page).toHaveURL("/");
+  await expect(page).toHaveURL(AUTHENTICATED_HOME);
 
   await page.goto(recoveryUrl("not-a-real-token"));
 
@@ -217,5 +219,5 @@ test("the link arrives by email and completes recovery", async ({ page }) => {
   await expect(page).toHaveURL("/reset-password");
   await chooseNewPassword(page, NEW_PASSWORD);
 
-  await expect(page).toHaveURL("/");
+  await expect(page).toHaveURL(AUTHENTICATED_HOME);
 });

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 
 import { authMessages } from "@/lib/auth/messages";
 
-import { FormAlert, TextField } from "../_components/fields";
+import { FormAlert, TextField } from "@/components/form/fields";
 import { requestPasswordReset, type ForgotPasswordState } from "./actions";
 
 const initialState: ForgotPasswordState = { sent: false, error: null, email: "" };

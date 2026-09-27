@@ -5,7 +5,9 @@ import { useActionState, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 
-import { FormAlert, PasswordField, PasswordRuleHint } from "../_components/fields";
+import { FormAlert } from "@/components/form/fields";
+
+import { PasswordField, PasswordRuleHint } from "../_components/fields";
 import { resetPassword, type ResetPasswordState } from "./actions";
 
 const initialState: ResetPasswordState = { errors: {}, message: null };

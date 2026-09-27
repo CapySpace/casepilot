@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
 
+import { AUTHENTICATED_HOME } from "@/lib/auth/routes";
+
 import { asSomebodyElse, confirmationUrl, formError, signIn } from "../support/flows";
 import { latestEmailTo, mintSignupToken, newEmail } from "../support/users";
 
@@ -10,7 +12,7 @@ test("following the link verifies the address and signs the User in", async ({ p
 
   // Straight into the authenticated area — no sign-in step in between. That is the whole point:
   // registration and first use are one motion.
-  await expect(page).toHaveURL("/");
+  await expect(page).toHaveURL(AUTHENTICATED_HOME);
   await expect(page.getByText(user.email)).toBeVisible();
 });
 
@@ -34,19 +36,19 @@ test("a link cannot be made to redirect off the site", async ({ page }) => {
 
   await page.goto(confirmationUrl(tokenHash, { next: "//evil.example" }));
 
-  await expect(page).toHaveURL("/");
+  await expect(page).toHaveURL(AUTHENTICATED_HOME);
 });
 
 test("once verified, the User can sign in normally", async ({ page }) => {
   const { user, tokenHash } = await mintSignupToken();
   await page.goto(confirmationUrl(tokenHash));
-  await expect(page).toHaveURL("/");
+  await expect(page).toHaveURL(AUTHENTICATED_HOME);
 
   await page.getByRole("button", { name: "Sign out" }).click();
   await expect(page).toHaveURL("/sign-in");
   await signIn(page, user);
 
-  await expect(page).toHaveURL("/");
+  await expect(page).toHaveURL(AUTHENTICATED_HOME);
 });
 
 test("an invalid link is explained in plain language", async ({ page }) => {
@@ -82,7 +84,7 @@ test("a tampered token is refused and explained", async ({ page }) => {
 test("a consumed token cannot be replayed", async ({ page }) => {
   const { tokenHash } = await mintSignupToken();
   await page.goto(confirmationUrl(tokenHash));
-  await expect(page).toHaveURL("/");
+  await expect(page).toHaveURL(AUTHENTICATED_HOME);
 
   const theirPage = await asSomebodyElse(page, confirmationUrl(tokenHash));
 
@@ -98,12 +100,14 @@ test("a consumed token cannot be replayed", async ({ page }) => {
 test("following an old link again after verifying is not alarming", async ({ page }) => {
   const { tokenHash } = await mintSignupToken();
   await page.goto(confirmationUrl(tokenHash));
-  await expect(page).toHaveURL("/");
+  await expect(page).toHaveURL(AUTHENTICATED_HOME);
 
   await page.goto(confirmationUrl(tokenHash));
 
-  await expect(page).toHaveURL("/");
-  await expect(page.getByRole("heading", { name: "CasePilot" })).toBeVisible();
+  await expect(page).toHaveURL(AUTHENTICATED_HOME);
+  // The authenticated area's own heading, not an error: a spent link takes somebody who has already
+  // verified exactly where it was always going to take them.
+  await expect(page.getByRole("heading", { name: "My Projects" })).toBeVisible();
 });
 
 /**
@@ -138,6 +142,6 @@ test("registering really does send an email containing a working link", async ({
 
   await page.goto(link!);
 
-  await expect(page).toHaveURL("/");
+  await expect(page).toHaveURL(AUTHENTICATED_HOME);
   await expect(page.getByText(email)).toBeVisible();
 });

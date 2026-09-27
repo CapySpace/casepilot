@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { authMessages, messageForAuthError } from "@/lib/auth/messages";
+import { AUTHENTICATED_HOME } from "@/lib/auth/routes";
 import { createClient } from "@/lib/supabase/server";
 
 export type SignInState = {
@@ -36,9 +37,9 @@ export async function signIn(
     return { message: messageForAuthError(error), email };
   }
 
-  // Not for the server render — `/` is dynamic and will read the cookies just set. This is for the
-  // client-side Router Cache, which is still holding the payload from when this visitor was signed
-  // out and would otherwise be reused by the navigation below.
+  // Not for the server render — the authenticated pages are dynamic and will read the cookies just
+  // set. This is for the client-side Router Cache, which is still holding the payload from when this
+  // visitor was signed out and would otherwise be reused by the navigation below.
   revalidatePath("/", "layout");
-  redirect("/");
+  redirect(AUTHENTICATED_HOME);
 }

@@ -1,5 +1,7 @@
 import { expect, type Page } from "@playwright/test";
 
+import { AUTHENTICATED_HOME } from "@/lib/auth/routes";
+
 /** The credentials a sign-in attempt is made with — a real User's, or a deliberately wrong pair. */
 type Credentials = {
   email: string;
@@ -12,6 +14,18 @@ export async function signIn(page: Page, { email, password }: Credentials) {
   await page.getByLabel("Work Email").fill(email);
   await page.getByLabel("Password", { exact: true }).fill(password);
   await page.getByRole("button", { name: "Sign In" }).click();
+}
+
+/**
+ * Signs in and waits to arrive.
+ *
+ * `signIn` deliberately does not wait — the tests about being refused need to stay on the form — so
+ * anything that goes on to navigate must wait for the session first, or it races the redirect and
+ * lands on sign-in with no session to show for it.
+ */
+export async function signInAndLand(page: Page, credentials: Credentials) {
+  await signIn(page, credentials);
+  await expect(page).toHaveURL(AUTHENTICATED_HOME);
 }
 
 /** Signs out from the authenticated area and waits to land back on sign-in. */

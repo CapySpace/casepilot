@@ -1,12 +1,14 @@
 import { expect, test, type Page } from "@playwright/test";
 
+import { AUTHENTICATED_HOME } from "@/lib/auth/routes";
+
 import { signIn, signOut } from "../support/flows";
 import { createVerifiedUser } from "../support/users";
 
 async function signedIn(page: Page) {
   const user = await createVerifiedUser();
   await signIn(page, user);
-  await expect(page).toHaveURL("/");
+  await expect(page).toHaveURL(AUTHENTICATED_HOME);
   return user;
 }
 
@@ -48,7 +50,7 @@ test("after signing out, a protected URL is unreachable", async ({ page }) => {
   await signedIn(page);
   await signOut(page);
 
-  await page.goto("/");
+  await page.goto(AUTHENTICATED_HOME);
 
   await expect(page).toHaveURL("/sign-in");
 });
@@ -77,7 +79,7 @@ test("the session is revoked, not just cleared from the browser", async ({ page,
   await signOut(page);
 
   await context.addCookies(signedInCookies);
-  await page.goto("/");
+  await page.goto(AUTHENTICATED_HOME);
 
   // Sent back to sign-in, and told why: replaying a dead session is a session that has ended, and
   // the access token stays signature-valid long enough for this to be the Data Access Layer's

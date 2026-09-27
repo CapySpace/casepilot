@@ -6,7 +6,9 @@ import { useActionState } from "react";
 
 import { Button } from "@/components/ui/button";
 
-import { FormAlert, PasswordField, TextField } from "../_components/fields";
+import { FormAlert, TextField } from "@/components/form/fields";
+
+import { PasswordField } from "../_components/fields";
 import { signIn } from "./actions";
 
 export function SignInForm({ notice }: { notice: string | null }) {

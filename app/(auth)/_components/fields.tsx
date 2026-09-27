@@ -1,79 +1,22 @@
 "use client";
 
-import { Check, Eye, EyeOff, Lock, TriangleAlert, type LucideIcon } from "lucide-react";
+import { Check, Eye, EyeOff, Lock } from "lucide-react";
 import { useId, useState, type ComponentProps, type ReactNode } from "react";
 
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { FieldError, FIELD_CLASSES, ICON_CLASSES } from "@/components/form/fields";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PASSWORD_RULE, PASSWORD_RULE_MET } from "@/lib/auth/messages";
 import { isPasswordValid } from "@/lib/auth/validation";
 
 /**
- * The parts every authentication form is built from.
+ * What is genuinely about passwords.
  *
- * Extracted once sign-up needed the same field markup, the same password toggle and the same error
- * rendering as sign-in. Ticket 06's reset-password form is the third.
+ * The generic parts — the form-level alert, the text field, the error line — live in
+ * `components/form/fields.tsx`, and the authentication forms import them from there directly. This
+ * module deliberately forwards nothing: a file whose whole job is re-export is one more place to look
+ * and no place where anything happens.
  */
-
-const FIELD_CLASSES = "h-11 rounded-lg pl-10 text-body-md";
-const ICON_CLASSES =
-  "pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-muted-foreground";
-
-/** A failure that belongs to the form rather than to any one field. */
-export function FormAlert({ message }: { message: string | null }) {
-  if (!message) return null;
-
-  return (
-    <Alert variant="destructive">
-      <TriangleAlert />
-      <AlertDescription>{message}</AlertDescription>
-    </Alert>
-  );
-}
-
-function FieldError({ id, message }: { id: string; message: string | undefined }) {
-  if (!message) return null;
-
-  return (
-    <p id={id} className="text-body-sm text-destructive">
-      {message}
-    </p>
-  );
-}
-
-type TextFieldProps = ComponentProps<typeof Input> & {
-  label: string;
-  icon: LucideIcon;
-  error?: string;
-};
-
-export function TextField({ label, icon: Icon, error, id, ...props }: TextFieldProps) {
-  const generatedId = useId();
-  const fieldId = id ?? generatedId;
-  const errorId = `${fieldId}-error`;
-
-  return (
-    <div className="flex flex-col gap-2xs">
-      <Label htmlFor={fieldId} className="text-label-md">
-        {label}
-      </Label>
-      <div className="relative">
-        <span className={ICON_CLASSES}>
-          <Icon className="size-5" aria-hidden="true" />
-        </span>
-        <Input
-          id={fieldId}
-          aria-invalid={error !== undefined}
-          aria-describedby={error ? errorId : undefined}
-          className={FIELD_CLASSES}
-          {...props}
-        />
-      </div>
-      <FieldError id={errorId} message={error} />
-    </div>
-  );
-}
 
 type PasswordFieldProps = ComponentProps<typeof Input> & {
   label?: string;

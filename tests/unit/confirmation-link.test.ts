@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { parseConfirmationLink, safeNext } from "@/lib/auth/confirmation";
+import { AUTHENTICATED_HOME } from "@/lib/auth/routes";
 
 function parse(query: string) {
   return parseConfirmationLink(new URLSearchParams(query));
@@ -24,7 +25,7 @@ describe("parseConfirmationLink", () => {
   });
 
   it("defaults the destination to the authenticated area", () => {
-    expect(parse("token_hash=abc123&type=signup")?.next).toBe("/");
+    expect(parse("token_hash=abc123&type=signup")?.next).toBe(AUTHENTICATED_HOME);
   });
 
   it("rejects a link with no token", () => {
