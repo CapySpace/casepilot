@@ -120,8 +120,8 @@ quiet structural signposts rather than shouting.
 (`TC-101`), version refs (`#v2.4.0-rc3`), defect keys (`Jira-409`, `PAY-8821`), filenames
 (`auth_timeout_trace.png`), counts (`128 Total Cases`) and the version badge (`v0.1`). The shift in
 texture tells you instantly that a string is a *reference you could copy*, not prose. This role is real
-and pervasive in the product but is **not declared in the Stitch theme** — pin a specific family before
-it drifts between screens.
+and pervasive in the product but was **not declared in the Stitch theme**. Now pinned to **JetBrains
+Mono**, loaded in the root layout and exposed as `--font-mono`, so it cannot drift between screens.
 
 **Numerals:** tabular lining figures (`tnum`) throughout all metrics, counts, timestamps and IDs, so
 columns never shift as values update during a run.
@@ -196,6 +196,26 @@ and utility bars. Nothing is crowded and nothing floats unanchored.
 **Corner radius scale:** `sm` 0.25rem (4px) · `DEFAULT` 0.5rem (8px, inputs and buttons) · `md` 0.75rem
 (12px, data cards) · `lg` 1rem (16px, panels) · `xl` 1.5rem (24px, modals and drawers) · `full` 9999px
 (status chips and badges only).
+
+> **How this scale is named in code.** The radius names above are the design system's own; the
+> Tailwind utility names differ, because shadcn/ui's components pick their own. The tokens in
+> `app/globals.css` map one to the other by *what the element is*, not by matching names:
+>
+> | This document | Tailwind utility | Used by |
+> | --- | --- | --- |
+> | `DEFAULT` 0.5rem | `rounded-md`, `rounded-lg` | Inputs, buttons |
+> | `md` 0.75rem | `rounded-xl` | Data cards |
+> | `lg` 1rem | `rounded-2xl` | Panels |
+> | `xl` 1.5rem | `rounded-3xl` | Modals, drawers |
+> | `full` | `rounded-full` | Status chips and badges only |
+>
+> So `rounded-lg` is 8px, not 16px. Read the table, not the name.
+>
+> The §3 type scale is exposed with names that do match: `text-display`, `text-headline-lg`,
+> `text-headline-md`, `text-headline-sm`, `text-title-lg`, `text-body-lg`, `text-body-md`,
+> `text-body-sm`, `text-label-md`, `text-label-sm`. Each carries its own line height, tracking and
+> weight, so picking a step gives all four. Never reach for `text-[40px]`: it silently drops the
+> tracking that makes large type in this system cohere.
 
 **Alignment:** everything left-aligns to a shared grid; only numeric values, timestamps, counts and
 trailing actions align right, so the eye can run down a column of figures uninterrupted.

@@ -1,36 +1,87 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CasePilot
 
-## Getting Started
+Test-execution tracking for software QA teams: what was tested, against which build, by whom, and
+what happened — with a history that can be audited rather than overwritten.
 
-First, run the development server:
+Next.js 16 (App Router) and Supabase. **Case always means test case** — see `CONTEXT.md` for the
+glossary, and `docs/adr/` for the decisions that shaped the architecture.
+
+## Getting started
+
+You need Node.js 22.12 or later — an even-numbered LTS. Next.js itself is happy on 20.9, but the
+unit test runner is not. You also need the [Supabase CLI](https://supabase.com/docs/guides/cli) and
+Docker running.
 
 ```bash
+npm install
+cp .env.example .env.local
+supabase start
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The app is at http://localhost:3000. The stack's own URLs — Studio, the mail catcher — are printed by
+`supabase start`, and `supabase status` prints them again.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Everything the stack needs is in `supabase/config.toml` and `supabase/templates/`, so there is no
+dashboard to click through. `.env.local` holds no per-developer secrets either: the values in
+`.env.example` are the CLI's fixed local ones, the same on every machine.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Running the tests
 
-## Learn More
+```bash
+npm test          # both suites
+npm run test:unit # Vitest
+npm run test:e2e  # Playwright
+```
 
-To learn more about Next.js, take a look at the following resources:
+Both need a running stack (`supabase start`). The browser suite starts the dev server itself and
+reuses one you already have running.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The provider is **never mocked**. The value of these tests is almost entirely in exercising
+Supabase's real behaviour — a mock would cheerfully confirm behaviour it does not have. So a failing
+suite with a stopped stack means the stack is stopped, not that anything is broken.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Two seams, and only two:
 
-## Deploy on Vercel
+- **The browser** (`tests/e2e/`) is the primary seam, and where nearly every acceptance criterion
+  lives. One test crossing it exercises the form, the Server Action, the proxy, the Data Access
+  Layer, Supabase, cookies and redirects together.
+- **Pure functions** (`tests/unit/`) are a narrow second seam — validation rules and error-message
+  translation, input in and value out. They exist only for what the browser cannot reach
+  economically, such as expired links.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Deliberately not seams: no mocked provider client, no isolated Server Action tests, no
+component-level tests.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+If a test would fail after swapping the implementation for an equivalent one, it is testing the wrong
+thing. Assert what a User could observe — text on screen, the URL they land on, whether a protected
+page is reachable — and nothing about the shape of a session object or which function called which.
+
+## Other commands
+
+```bash
+npm run typecheck   # tsc --noEmit
+npm run lint        # eslint
+npm run build       # production build
+supabase db reset   # rebuild the local database from scratch
+```
+
+## Where things are
+
+| Path                | What it holds                                                         |
+| ------------------- | --------------------------------------------------------------------- |
+| `app/`              | Routes, pages and Server Actions                                      |
+| `components/ui/`    | shadcn/ui components, themed from `DESIGN.md`                         |
+| `lib/supabase/`     | Client factories for browser, server and proxy context                |
+| `supabase/`         | Local stack configuration and email templates                         |
+| `tests/unit/`       | Vitest — pure functions only                                          |
+| `tests/e2e/`        | Playwright — whole flows against the real stack                       |
+| `CONTEXT.md`        | The glossary. Read before naming anything                             |
+| `DESIGN.md`         | The design system. Read before building any interface                 |
+| `docs/adr/`         | Architecture decisions, including why authentication is enforced twice |
+| `.scratch/`         | Specs and tickets                                                     |
+
+Two things will look wrong to anyone who knows Supabase and Next.js, and both are deliberate:
+request interception lives in `proxy.ts`, not `middleware.ts` (Next.js 16 renamed the convention),
+and authentication is checked in two places rather than one. `docs/adr/0002-two-layer-auth-enforcement.md`
+explains why neither is redundant.

@@ -1,26 +1,220 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/*
+ * Every colour below is a token from DESIGN.md, named there as well as here so the two can be read
+ * side by side. shadcn/ui's own neutral defaults are deliberately not used.
+ *
+ * components.json still records `baseColor: "neutral"`. That field only seeds the variables `shadcn
+ * init` writes, and every one of them has been replaced below; because `cssVariables` is true,
+ * `shadcn add` emits components that reference these variables rather than inlining a palette of
+ * its own. Verified by adding a component and diffing this file.
+ *
+ * DESIGN.md describes a single light theme — "light dominates absolutely" — and defines no dark
+ * palette, so there is no `.dark` block here. Inventing one would mean theming from something other
+ * than the design system.
+ */
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+
+  /* Inter for data and controls, Plus Jakarta Sans for structure and voice (DESIGN.md §3). */
+  --font-sans: var(--font-inter);
+  --font-heading: var(--font-plus-jakarta-sans);
+  /* DESIGN.md §3 records that the identifier monospace is real in the product but undeclared in
+   * the Stitch theme, and asks for a family to be pinned. Pinned here to JetBrains Mono. */
+  --font-mono: var(--font-jetbrains-mono);
+
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+
+  /* Brand and reference colours that are not one of shadcn's semantic slots. */
+  --color-brand: var(--brand);
+  --color-reference: var(--reference);
+
+  /* The status scale (DESIGN.md §2). Five mutually exclusive execution states, each a triplet of
+   * saturated marker, pale container and deep on-container text. Colour means status, and status
+   * alone. Phase 1 has no status UI; the scale is here so later phases read it rather than guess. */
+  --color-passed: var(--passed);
+  --color-passed-container: var(--passed-container);
+  --color-passed-on-container: var(--passed-on-container);
+  --color-failed: var(--failed);
+  --color-failed-container: var(--failed-container);
+  --color-failed-on-container: var(--failed-on-container);
+  --color-blocked: var(--blocked);
+  --color-blocked-container: var(--blocked-container);
+  --color-blocked-on-container: var(--blocked-on-container);
+  --color-skipped: var(--skipped);
+  --color-skipped-container: var(--skipped-container);
+  --color-skipped-on-container: var(--skipped-on-container);
+  --color-not-run: var(--not-run);
+  --color-not-run-container: var(--not-run-container);
+  --color-not-run-on-container: var(--not-run-on-container);
+
+  /* DESIGN.md §3's type scale, each step carrying its own line height and tracking. Plus Jakarta
+   * Sans's signature is tight negative tracking that intensifies with size, so the step and its
+   * tracking must travel together — which is exactly what an arbitrary `text-[40px]` loses. */
+  --text-display: 3.5rem;
+  --text-display--line-height: 4rem;
+  --text-display--letter-spacing: -0.03em;
+  --text-display--font-weight: 800;
+  --text-headline-lg: 2.5rem;
+  --text-headline-lg--line-height: 3rem;
+  --text-headline-lg--letter-spacing: -0.02em;
+  --text-headline-lg--font-weight: 700;
+  --text-headline-md: 1.5rem;
+  --text-headline-md--line-height: 2rem;
+  --text-headline-md--letter-spacing: -0.015em;
+  --text-headline-md--font-weight: 700;
+  --text-headline-sm: 1.25rem;
+  --text-headline-sm--line-height: 1.75rem;
+  --text-headline-sm--letter-spacing: -0.01em;
+  --text-headline-sm--font-weight: 600;
+  --text-title-lg: 1.125rem;
+  --text-title-lg--line-height: 1.5rem;
+  --text-title-lg--letter-spacing: -0.005em;
+  --text-title-lg--font-weight: 600;
+  --text-body-lg: 1rem;
+  --text-body-lg--line-height: 1.5rem;
+  --text-body-md: 0.875rem;
+  --text-body-md--line-height: 1.25rem;
+  --text-body-sm: 0.75rem;
+  --text-body-sm--line-height: 1rem;
+  --text-body-sm--letter-spacing: 0.01em;
+  --text-label-md: 0.8125rem;
+  --text-label-md--line-height: 1rem;
+  --text-label-md--letter-spacing: 0.01em;
+  --text-label-md--font-weight: 600;
+  /* Label sm's generous tracking is what makes uppercase eyebrow labels read as quiet structural
+   * signposts rather than shouting. */
+  --text-label-sm: 0.6875rem;
+  --text-label-sm--line-height: 0.875rem;
+  --text-label-sm--letter-spacing: 0.04em;
+  --text-label-sm--font-weight: 600;
+
+  /* DESIGN.md §5's radius scale, mapped onto the Tailwind names shadcn's components actually use:
+   * buttons and inputs are `rounded-lg`, cards `rounded-xl`, panels `rounded-2xl`, modals and
+   * drawers `rounded-3xl`. Status chips take `rounded-full`, the only element allowed full
+   * curvature. This replaces shadcn's single-knob derived scale, which cannot express it. */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+  --radius-3xl: 1.5rem;
+  --radius-4xl: 1.5rem;
+
+  /* DESIGN.md §5's 8px rhythm, named as it is there. */
+  --spacing-2xs: 0.25rem;
+  --spacing-xs: 0.5rem;
+  --spacing-sm: 0.75rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+
+  /* Level 1 elevation: a hairline border plus an ambient navy-tinted shadow "so soft it reads as a
+   * held breath rather than a lift" (DESIGN.md §4). */
+  --shadow-level-1: 0 1px 2px 0 rgb(11 28 48 / 0.04), 0 1px 3px 0 rgb(11 28 48 / 0.04);
+  --shadow-level-2: 0 4px 12px -2px rgb(11 28 48 / 0.08), 0 2px 4px -2px rgb(11 28 48 / 0.06);
+  --shadow-level-3: 0 16px 40px -8px rgb(11 28 48 / 0.14), 0 4px 12px -4px rgb(11 28 48 / 0.08);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  --radius: 0.5rem;
+
+  /* Foundation */
+  --background: #f8f9ff; /* Cool Porcelain — the application canvas */
+  --foreground: #0b1c30; /* Midnight Slate Navy — all primary typography */
+  --card: #ffffff; /* Pure Sheet White — every elevated surface */
+  --card-foreground: #0b1c30;
+  --popover: #ffffff;
+  --popover-foreground: #0b1c30;
+
+  /* Brand and primary action. Signal Emerald announces; Deep Pine Green acts — emerald is too
+   * light to carry white text, so every committed action darkens to pine (DESIGN.md §2). */
+  --brand: #00c696; /* Signal Emerald */
+  --primary: #006c50; /* Deep Pine Green */
+  --primary-foreground: #ffffff;
+
+  --secondary: #eff4ff; /* Whisper Periwinkle — the system's quiet container */
+  --secondary-foreground: #0b1c30;
+  --muted: #eff4ff;
+  --muted-foreground: #4e5f7a; /* Muted Harbour Slate — secondary and supporting text */
+  --accent: #eaf2ff; /* Selected Row Ice — row selection and hover tint */
+  --accent-foreground: #0b1c30;
+
+  --destructive: #ba1a1a; /* Alarm Crimson */
+
+  /* Navigational Sapphire — every identifier and link. Deliberately not a status colour: blue
+   * means "this is a thing you can go to" (DESIGN.md §2). */
+  --reference: #005bb2;
+
+  /* The hairline stroke on cards, inputs and table rows. DESIGN.md calls it "hairline cool-grey"
+   * throughout but records no hex, so this one value is derived rather than measured. */
+  --border: #e3e8f4;
+  --input: #e3e8f4;
+  /* Focus states use a dual ring — white inner separator, saturated outer ring — so keyboard
+   * position stays obvious on both white and porcelain (DESIGN.md §5). */
+  --ring: #00c696;
+
+  /* Status scale */
+  --passed: #00c696;
+  --passed-container: #d4f4ef;
+  --passed-on-container: #006c50;
+  --failed: #ba1a1a;
+  --failed-container: #ffe9e6;
+  --failed-on-container: #ba1a1a;
+  --blocked: #f59e0b;
+  --blocked-container: #fef3c7;
+  --blocked-on-container: #78350f;
+  --skipped: #a855f7;
+  --skipped-container: #f6eefe;
+  --skipped-on-container: #9333ea;
+  --not-run: #b8bfca; /* Dormant Grey — signals "nothing has happened here yet" */
+  --not-run-container: #eff4ff;
+  --not-run-on-container: #4e5f7a;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
   }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  html {
+    @apply font-sans;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  /* Headings carry the structural voice. Size, line height and tracking come from the type scale
+   * above — pick a step (`text-headline-lg`), do not reach for an arbitrary value. */
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-heading;
+  }
+  /* Tabular lining figures throughout, so columns never shift as values update during a run. */
+  code,
+  kbd,
+  samp,
+  pre {
+    @apply font-mono tabular-nums;
+  }
 }

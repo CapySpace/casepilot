@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <body style="margin:0;padding:24px;background:#f8f9ff;font-family:Inter,Helvetica,Arial,sans-serif;color:#0b1c30">
+    <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="max-width:520px;margin:0 auto;background:#ffffff;border:1px solid #e3e8f4;border-radius:16px">
+      <tr>
+        <td style="padding:24px">
+          <h1 style="margin:0 0 16px;font-family:'Plus Jakarta Sans',Helvetica,Arial,sans-serif;font-size:24px;line-height:32px;font-weight:700;letter-spacing:-0.015em">
+            Reset your password
+          </h1>
+          <p style="margin:0 0 16px;font-size:16px;line-height:24px">
+            Someone asked to reset the CasePilot password for this address. Follow the link to choose
+            a new one. Your current password keeps working until you do.
+          </p>
+          <p style="margin:0 0 24px">
+            <a
+              href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/reset-password"
+              style="display:inline-block;padding:12px 20px;border-radius:8px;background:#006c50;color:#ffffff;font-size:14px;line-height:20px;font-weight:600;text-decoration:none"
+              >Choose a new password</a
+            >
+          </p>
+          <p style="margin:0;font-size:12px;line-height:16px;color:#4e5f7a">
+            This link can be used once and expires in an hour. If you did not ask for a password
+            reset, you can ignore this email.
+          </p>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
