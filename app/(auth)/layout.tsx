@@ -22,7 +22,7 @@ export default function AuthLayout({ children }: LayoutProps<"/">) {
   return (
     <div className="flex min-h-full flex-1 flex-col">
       <header className="w-full">
-        <div className="mx-auto flex h-20 max-w-7xl items-center px-md">
+        <div className="mx-auto flex h-20 max-w-shell items-center px-md">
           <Link href="/" className="font-heading text-title-lg font-bold">
             CasePilot
           </Link>

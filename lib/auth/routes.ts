@@ -15,6 +15,10 @@ export const PUBLIC_PATHS = [
   "/check-email",
   // Serves both email flows, distinguished by the type in its query string.
   "/auth/confirm",
+  // Linked from the registration form's consent checkbox, which is read before anyone has a
+  // session. An agreement to something you cannot open is not worth recording.
+  "/terms",
+  "/privacy",
 ] as const;
 
 const PUBLIC_PATH_SET: ReadonlySet<string> = new Set(PUBLIC_PATHS);

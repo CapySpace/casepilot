@@ -170,9 +170,14 @@ SQL.
 **Verification is mandatory.** Email confirmation is enabled, so registration returns a User with no
 session and the flow ends on the check-email page rather than in the application.
 
-**Duplicate registration does not disclose account existence.** With confirmation enabled the
-provider returns an obfuscated user object for an already-registered address, sending no email and
-raising no error. The application surfaces the same success state it shows a genuine new
+**Duplicate registration does not disclose account existence.** This was planned on the assumption
+that the provider returns an obfuscated user object for an already-registered address, sending no
+email and raising no error. Implementation found that it no longer does — a confirmed address
+returns `user_already_exists` — so the application enforces the property instead. See ADR-0001 for
+the measured behaviour. The original text follows, for the reasoning it carries:
+
+> With confirmation enabled the provider returns an obfuscated user object for an already-registered
+> address, sending no email and raising no error. The application surfaces the same success state it shows a genuine new
 registration. The original acceptance criterion "duplicate account errors are handled" is replaced
 by "duplicate registrations are handled without disclosing account existence". The friendlier
 alternative — emailing the existing User to say someone tried to register with their address — is
@@ -232,7 +237,10 @@ catalogue through the browser would mean either contorted setup or no coverage.
 **Obtaining verification and recovery links.** Tests that merely require a verified User mint tokens
 directly through the provider's administrative interface, bypassing email for speed and determinism.
 Exactly one test goes the long way round, reading the local mail catcher to assert that registering
-genuinely produces an email containing a working confirmation link. Disabling confirmation in the
+genuinely produces an email containing a working confirmation link. ("The long way round" means
+driving a flow *through* an email. Counting messages to assert that one was **not** sent — which
+registration does, to prove a duplicate discloses nothing — is not that, and is not covered by the
+"exactly one" above.) Disabling confirmation in the
 test environment is not acceptable — the verification criteria would then be untested by
 construction.
 

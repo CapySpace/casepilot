@@ -27,7 +27,7 @@ export default async function Page() {
   const user = await verifySession();
 
   return (
-    <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col justify-center gap-lg px-md py-xl">
+    <main className="mx-auto flex w-full max-w-reading flex-1 flex-col justify-center gap-lg px-md py-xl">
       <h1 className="text-headline-lg">CasePilot</h1>
 
       <Card>

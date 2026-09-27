@@ -21,15 +21,15 @@ colleagues have accounts is a real leak.
 
 **Status:** ready-for-agent
 
-- [ ] A prospective User can register with full name, email and password
-- [ ] The form matches the design: full name, work email, password with a visibility toggle, a terms agreement checkbox, and a link to sign-in
-- [ ] The password rule is stated on the form before submission and matches what is actually enforced
-- [ ] Password validity updates live as the User types, without a round trip
-- [ ] Registration is rejected without an email address, with a malformed email address, or with a password that fails the rule
-- [ ] Validation runs again on the server, because browser validation is not a security control
-- [ ] The account cannot be created without agreeing to the terms
-- [ ] A profile record is created automatically for every new User, holding their full name and the timestamp and version of the terms they accepted
-- [ ] Registering with an already-registered address produces exactly the same visible outcome as a new registration, discloses nothing, and sends no email
-- [ ] After registering, the User lands on a check-email page that survives a refresh and explains what to do next
-- [ ] A registered but unverified User still cannot sign in
-- [ ] Browser tests cover successful registration, each validation failure, the terms gate, and duplicate registration non-disclosure
+- [x] A prospective User can register with full name, email and password
+- [x] The form matches the design: full name, work email, password with a visibility toggle, a terms agreement checkbox, and a link to sign-in
+- [x] The password rule is stated on the form before submission and matches what is actually enforced
+- [x] Password validity updates live as the User types, without a round trip
+- [x] Registration is rejected without an email address, with a malformed email address, or with a password that fails the rule
+- [x] Validation runs again on the server, because browser validation is not a security control
+- [x] The account cannot be created without agreeing to the terms
+- [x] A profile record is created automatically for every new User, holding their full name and the timestamp and version of the terms they accepted
+- [x] Registering with an already-registered address produces exactly the same visible outcome as a new registration, discloses nothing, and sends no email
+- [x] After registering, the User lands on a check-email page that survives a refresh and explains what to do next
+- [x] A registered but unverified User still cannot sign in
+- [x] Browser tests cover successful registration, each validation failure, the terms gate, and duplicate registration non-disclosure

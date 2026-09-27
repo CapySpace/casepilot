@@ -12,6 +12,11 @@ describe("isPublicPath", () => {
     expect(isPublicPath("/auth/confirm")).toBe(true);
   });
 
+  it("lets the pages registration asks people to agree to through", () => {
+    expect(isPublicPath("/terms")).toBe(true);
+    expect(isPublicPath("/privacy")).toBe(true);
+  });
+
   it("protects the authenticated area", () => {
     expect(isPublicPath("/")).toBe(false);
   });
