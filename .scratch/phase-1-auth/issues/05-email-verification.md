@@ -14,13 +14,13 @@ callback route, and ticket 06 will extend it to recovery tokens rather than addi
 
 **Status:** ready-for-agent
 
-- [ ] Following the link in the verification email verifies the address and signs the User in
-- [ ] A verified User lands in the authenticated area without a further navigation step
-- [ ] The confirmation endpoint distinguishes token types and honours the onward destination it is given
-- [ ] An invalid link is rejected with a plain-language explanation that tells the User to request a new one
-- [ ] An expired link is rejected with a plain-language explanation that makes clear the link was time-limited
-- [ ] Following a verification link again after verifying is handled gracefully, with no alarming error
-- [ ] A tampered or already-consumed token cannot be replayed
-- [ ] Once verified, the User can sign in normally
-- [ ] Most tests mint tokens through the provider's administrative interface for speed and determinism
-- [ ] Exactly one test reads the local mail catcher and asserts that registering genuinely produces an email containing a working confirmation link
+- [x] Following the link in the verification email verifies the address and signs the User in
+- [x] A verified User lands in the authenticated area without a further navigation step
+- [x] The confirmation endpoint distinguishes token types and honours the onward destination it is given
+- [x] An invalid link is rejected with a plain-language explanation that tells the User to request a new one
+- [x] An expired link is rejected with a plain-language explanation that makes clear the link was time-limited
+- [x] Following a verification link again after verifying is handled gracefully, with no alarming error
+- [x] A tampered or already-consumed token cannot be replayed
+- [x] Once verified, the User can sign in normally
+- [x] Most tests mint tokens through the provider's administrative interface for speed and determinism
+- [x] Exactly one test reads the local mail catcher and asserts that registering genuinely produces an email containing a working confirmation link

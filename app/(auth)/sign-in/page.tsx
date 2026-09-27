@@ -1,13 +1,20 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { messageForLinkProblem } from "@/lib/auth/messages";
+
 import { SignInForm } from "./sign-in-form";
 
 export const metadata: Metadata = {
   title: "Sign in · CasePilot",
 };
 
-export default function SignInPage() {
+export default async function SignInPage({ searchParams }: PageProps<"/sign-in">) {
+  // Set by the confirmation endpoint when a link could not be used. It carries a key, not a
+  // message, so the only words that can appear here are CasePilot's own.
+  const { error } = await searchParams;
+  const notice = messageForLinkProblem(error);
+
   return (
     <div className="w-full rounded-2xl border border-border bg-card p-lg shadow-level-1 sm:p-xl">
       {/*
@@ -24,7 +31,7 @@ export default function SignInPage() {
         </p>
       </div>
 
-      <SignInForm />
+      <SignInForm notice={notice} />
 
       <div className="mt-lg border-t border-border pt-md text-center text-body-sm text-muted-foreground">
         New to CasePilot?{" "}

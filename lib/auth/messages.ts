@@ -51,6 +51,15 @@ export const authMessages = {
   emailMalformed: "That does not look like an email address.",
   passwordTooWeak: `Your password must be ${PASSWORD_RULE.toLowerCase()}.`,
   termsRequired: "Agree to the Terms of Service and Privacy Policy to continue.",
+
+  // Email links. The provider cannot tell these apart — a consumed token, a tampered one and a
+  // genuinely expired one all come back `otp_expired`, verified against the running stack — so the
+  // split here is one CasePilot can actually make: a link that is malformed, against a token the
+  // provider refused. The second message covers expiry and reuse together, because claiming to
+  // know which would be a guess.
+  linkInvalid: "That link is not valid. Open the most recent email we sent you and use the link in it.",
+  linkExpired:
+    "That link has expired or has already been used. Links last about an hour — request a new one and follow it from your email.",
 } as const;
 
 /** The shape of a provider error, narrowed to what the catalogue is allowed to look at. */
@@ -73,6 +82,27 @@ const BY_CODE: Record<string, string> = {
  * Note what this does not do: it never reads `error.message`. The provider's own text is not a
  * fallback, it is the thing being kept out.
  */
+/**
+ * Why a confirmation link failed, as it travels in a URL.
+ *
+ * A key, never the message itself: the confirmation endpoint redirects to sign-in with this in the
+ * query string, and putting text there would let anybody with a link put words in CasePilot's
+ * mouth.
+ */
+export const linkProblems = {
+  "invalid-link": authMessages.linkInvalid,
+  "expired-link": authMessages.linkExpired,
+} as const;
+
+export type LinkProblem = keyof typeof linkProblems;
+
+/** Null when there is no problem to report, or the key is not one we issue. */
+export function messageForLinkProblem(key: string | string[] | undefined): string | null {
+  if (typeof key !== "string") return null;
+
+  return linkProblems[key as LinkProblem] ?? null;
+}
+
 export function messageForAuthError(error: ProviderError | null | undefined): string {
   const code = error?.code;
   if (!code) return authMessages.unexpected;

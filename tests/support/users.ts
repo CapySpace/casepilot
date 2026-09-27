@@ -161,3 +161,56 @@ export async function emailsSentTo(address: string): Promise<number> {
   const { messages_count: count } = (await response.json()) as { messages_count: number };
   return count;
 }
+
+/**
+ * A signup confirmation token minted straight through the administrative interface.
+ *
+ * Most verification tests take this route: it is the same one-time token the email would have
+ * carried, without the wait or the parsing. Exactly one test in the suite goes the long way round
+ * through the mail catcher, and it is the one that proves registering really does send a working
+ * link.
+ */
+export async function mintSignupToken(): Promise<{ user: SeededUser; tokenHash: string }> {
+  const email = newEmail();
+  const fullName = "Minted Tester";
+
+  const response = await fetch(`${requiredEnv("NEXT_PUBLIC_SUPABASE_URL")}/auth/v1/admin/generate_link`, {
+    method: "POST",
+    headers: {
+      apikey: requiredEnv("SUPABASE_SECRET_KEY"),
+      Authorization: `Bearer ${requiredEnv("SUPABASE_SECRET_KEY")}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      type: "signup",
+      email,
+      password: PASSWORD,
+      data: { full_name: fullName },
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Could not mint a signup link: ${response.status} ${response.statusText}`);
+  }
+
+  const { hashed_token: tokenHash } = (await response.json()) as { hashed_token: string };
+
+  return { user: { email, password: PASSWORD, fullName }, tokenHash };
+}
+
+/** The most recent message the mail catcher holds for an address, as HTML. */
+export async function latestEmailTo(address: string): Promise<string> {
+  const list = await fetch(
+    `${MAIL_CATCHER_URL}/api/v1/search?query=${encodeURIComponent(`to:${address}`)}`,
+  );
+  if (!list.ok) throw new Error(`Could not search the mail catcher: ${list.status}`);
+
+  const { messages } = (await list.json()) as { messages: { ID: string }[] };
+  if (messages.length === 0) throw new Error(`No email was sent to ${address}`);
+
+  const message = await fetch(`${MAIL_CATCHER_URL}/api/v1/message/${messages[0].ID}`);
+  if (!message.ok) throw new Error(`Could not read the email: ${message.status}`);
+
+  const { HTML } = (await message.json()) as { HTML: string };
+  return HTML;
+}

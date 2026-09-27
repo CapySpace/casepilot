@@ -7,12 +7,12 @@ import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
 
 import { FormAlert, PasswordField, TextField } from "../_components/fields";
-import { signIn, type SignInState } from "./actions";
+import { signIn } from "./actions";
 
-const initialState: SignInState = { message: null, email: "" };
-
-export function SignInForm() {
-  const [state, formAction, pending] = useActionState(signIn, initialState);
+export function SignInForm({ notice }: { notice: string | null }) {
+  // Whatever brought them here starts in the same slot the action's own failures use, so there is
+  // only ever one message on this form, and submitting replaces it rather than stacking.
+  const [state, formAction, pending] = useActionState(signIn, { message: notice, email: "" });
 
   return (
     <form action={formAction} className="flex flex-col gap-md">
