@@ -65,3 +65,30 @@ export const currentUser = cache(async (): Promise<SignedInUser | null> => {
 
   return { id: data.user.id, email: data.user.email };
 });
+
+/**
+ * The User, but only when their session came from following a recovery link.
+ *
+ * Verifying a recovery token signs somebody in, so a session on the choose-a-new-password screen
+ * is what stands in for "you opened the email". A session on its own is not enough: the provider
+ * records *how* it was established, and an ordinary password sign-in must not be able to set a new
+ * password without stating the old one. Otherwise borrowed access to an unlocked machine becomes
+ * permanent access.
+ *
+ * `amr` is read from the access token's own claims, which the provider signed, so it is evidence
+ * rather than something the browser asserts. `getClaims()` verifies that signature locally.
+ */
+export const recoveringUser = cache(async (): Promise<SignedInUser | null> => {
+  const user = await currentUser();
+  if (!user) return null;
+
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getClaims();
+
+  const methods: unknown = data?.claims?.amr;
+  const followedALink =
+    Array.isArray(methods) &&
+    methods.some((entry) => (entry as { method?: unknown } | null)?.method === "otp");
+
+  return followedALink ? user : null;
+});

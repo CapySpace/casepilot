@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 
-import { carriesAuthCookie, isPublicPath } from "@/lib/auth/routes";
+import { isPublicPath } from "@/lib/auth/routes";
 import { createProxyClient } from "@/lib/supabase/proxy";
 
 /**
@@ -27,9 +27,15 @@ export async function proxy(request: NextRequest) {
   if (!signedIn && !isPublicPath(request.nextUrl.pathname)) {
     const signIn = request.nextUrl.clone();
     signIn.pathname = "/sign-in";
-    // A session that stopped working gets an explanation; simply arriving signed out does not,
-    // because there is nothing to explain. The cookie is what tells the two apart.
-    signIn.search = carriesAuthCookie(request.cookies.getAll()) ? "?error=session-expired" : "";
+    // No explanation from here. Telling somebody their session expired when they simply arrived
+    // signed out would be a lie about their own history, and this layer cannot tell the two apart
+    // without inspecting cookie names — which the testing rules rightly forbid reaching for, and
+    // which the library will not do for us: it reports a dead cookie as no cookie at all.
+    //
+    // The case that matters is covered a layer down. A session that dies while somebody is using
+    // it still passes the claims check here and is caught by the Data Access Layer, which knows it
+    // was reached only because a session existed a moment ago.
+    signIn.search = "";
     return respond(signIn);
   }
 

@@ -230,17 +230,29 @@ translation map, and exist only for cases the browser cannot reach economically 
 expired sessions, and the remaining catalogue of user-facing strings whose provider error states are
 impractical to induce through a genuine flow. Input in, string out.
 
+A third category joined it during ticket 05: the guard that decides whether a confirmation link's
+onward destination is safe to redirect to. It is a pure function and it is a security control, and
+the spellings a browser normalises into an off-site navigation — protocol-relative, backslash,
+percent-encoded, control characters, `/..//host` — are dozens of cases that would each cost a page
+load to state in the browser. One browser test proves the guard is wired in; the unit tests
+enumerate what it must refuse.
+
 **Deliberately not seams:** no mocked provider client, no isolated testing of Server Actions, no
 component-level tests. Two seams rather than one is a conscious concession; forcing the error
 catalogue through the browser would mean either contorted setup or no coverage.
 
 **Obtaining verification and recovery links.** Tests that merely require a verified User mint tokens
 directly through the provider's administrative interface, bypassing email for speed and determinism.
-Exactly one test goes the long way round, reading the local mail catcher to assert that registering
-genuinely produces an email containing a working confirmation link. ("The long way round" means
-driving a flow *through* an email. Counting messages to assert that one was **not** sent — which
-registration does, to prove a duplicate discloses nothing — is not that, and is not covered by the
-"exactly one" above.) Disabling confirmation in the
+One test per email flow goes the long way round, reading the local mail catcher to assert that the
+flow genuinely produces an email containing a working link: one for the confirmation link, one for
+the reset link. This was written as "exactly one" before password recovery was scoped; recovery's
+own criterion — "the reset link arrives by email, so only someone with inbox access can change the
+password" — cannot be met without reading a mailbox, and proving it for one flow does not prove it
+for the other. Two is the number of email flows, not a slide.
+
+("The long way round" means driving a flow *through* an email. Counting messages to assert that one
+was **not** sent — which registration does, to prove a duplicate discloses nothing — is not that,
+and is not covered by the count above.) Disabling confirmation in the
 test environment is not acceptable — the verification criteria would then be untested by
 construction.
 

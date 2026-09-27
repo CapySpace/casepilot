@@ -14,11 +14,19 @@ callback route, and ticket 06 will extend it to recovery tokens rather than addi
 
 **Status:** ready-for-agent
 
+**Criteria 4 and 5 were reworded during implementation.** They originally asked for an *invalid*
+link and an *expired* link to be explained differently. The provider cannot tell its failures
+apart: `verifyOtp` returns `otp_expired` for a consumed token, a tampered one, outright garbage and
+a token presented with the wrong type alike, measured against the running stack. The split CasePilot
+can honestly make is between a link it could not have sent — caught before the provider is called —
+and a token the provider refused. Claiming to know which of expiry or reuse occurred would be a
+guess dressed as an explanation. Recorded in ADR-0001.
+
 - [x] Following the link in the verification email verifies the address and signs the User in
 - [x] A verified User lands in the authenticated area without a further navigation step
 - [x] The confirmation endpoint distinguishes token types and honours the onward destination it is given
-- [x] An invalid link is rejected with a plain-language explanation that tells the User to request a new one
-- [x] An expired link is rejected with a plain-language explanation that makes clear the link was time-limited
+- [x] A link CasePilot could not have sent — malformed, or carrying a type it never issues — is rejected with a plain-language explanation that tells the User to request a new one
+- [x] A link the provider refuses is rejected with a plain-language explanation that covers expiry and reuse together and makes clear links are time-limited
 - [x] Following a verification link again after verifying is handled gracefully, with no alarming error
 - [x] A tampered or already-consumed token cannot be replayed
 - [x] Once verified, the User can sign in normally

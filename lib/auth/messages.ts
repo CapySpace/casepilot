@@ -66,7 +66,6 @@ export const authMessages = {
   linkInvalid: "That link is not valid. Open the most recent email we sent you and use the link in it.",
   linkExpired:
     "That link has expired or has already been used. Links last about an hour — request a new one and follow it from your email.",
-  linkUnusable: "That link cannot be used.",
 
   /**
    * Shown when a session that was working has stopped working — expired, or ended somewhere else.
@@ -107,25 +106,27 @@ export const PROVIDER_ERROR_MESSAGES: Record<string, string> = {
  * fallback, it is the thing being kept out.
  */
 /**
- * Why a confirmation link failed, as it travels in a URL.
+ * What the sign-in screen should say about however somebody arrived at it.
  *
- * A key, never the message itself: the confirmation endpoint redirects to sign-in with this in the
- * query string, and putting text there would let anybody with a link put words in CasePilot's
- * mouth.
+ * A key, never the message itself: whatever redirects here puts this in the query string, and
+ * putting text there would let anybody with a URL put words in CasePilot's mouth.
+ *
+ * Not all of these come from a link — a session can end without one — which is why this is not
+ * named for links.
  */
-export const linkProblems = {
+export const authNotices = {
   "invalid-link": authMessages.linkInvalid,
   "expired-link": authMessages.linkExpired,
   "session-expired": authMessages.sessionExpired,
 } as const;
 
-export type LinkProblem = keyof typeof linkProblems;
+export type AuthNotice = keyof typeof authNotices;
 
-/** Null when there is no problem to report, or the key is not one we issue. */
-export function messageForLinkProblem(key: string | string[] | undefined): string | null {
+/** Null when there is nothing to report, or the key is not one we issue. */
+export function messageForNotice(key: string | string[] | undefined): string | null {
   if (typeof key !== "string") return null;
 
-  return linkProblems[key as LinkProblem] ?? null;
+  return authNotices[key as AuthNotice] ?? null;
 }
 
 export function messageForAuthError(error: ProviderError | null | undefined): string {

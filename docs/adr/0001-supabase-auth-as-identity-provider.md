@@ -42,13 +42,38 @@ phases without a second system of record.
     than a loud failure — but it is a real cost, and it already forced the test seeding helper to
     supply metadata.
 
-- **Changing a password does not require the old one.** `secure_password_change` is off, which is
-  the provider's default and what the spec's "session policy takes the provider's defaults" selects.
-  A consequence worth stating: `/reset-password` works for anybody holding a session, not only for
-  somebody who followed a recovery link, so temporary access to an unlocked machine can be turned
-  into permanent access. Recovery itself is unaffected — the link is still what authorises a reset
-  for a User who cannot sign in. Turning the setting on would require a change-password flow with
-  its own interface and criteria, which Phase 1 does not have.
+- **The provider will change a password for any session, so the application does not.**
+  `secure_password_change` is off, which is its default. That setting governs *reauthentication*,
+  and an earlier version of this ADR wrongly cited the spec's "session policy takes the provider's
+  defaults" to justify accepting it — that line is about token lifetime and inactivity timeout, and
+  does not reach this.
+
+  Left alone, it meant `/reset-password` worked for anybody holding a session rather than only for
+  somebody who had followed a recovery link, so borrowed access to an unlocked machine became
+  permanent access. The application now requires the session to have come from a link: the access
+  token's `amr` claim records how a session was established (`otp` for a verified recovery token,
+  `password` for an ordinary sign-in), the provider signs it, and both the page and the action
+  check it.
+
+  Changing a password *while signed in* remains a feature Phase 1 does not have. It needs its own
+  interface and its own criteria, and turning `secure_password_change` on is part of building it.
+
+- **Every failed one-time token looks the same.** `verifyOtp` returns `otp_expired` for a consumed
+  token, a tampered one, outright garbage, and a token presented with the wrong type — measured
+  against the running stack. They cannot be told apart.
+
+  Tickets 05 and 06 each ask for an invalid link and an expired link to be explained differently.
+  That distinction is not available from the provider, so CasePilot makes the one it can: a link
+  that is malformed or carries a type we never issue is caught before the provider is called and
+  called invalid, and anything the provider refuses gets a single message covering expiry and reuse
+  together. Claiming to know which of the two happened would be a guess dressed as an explanation.
+
+- **Renewal is reliable in use and unproven when idle.** A rotating refresh token keeps a User in
+  continuous use signed in indefinitely; `npm run verify:renewal` demonstrates it against a
+  five-second token. Going idle is different: past expiry, renewal stops working once more than
+  `refresh_token_reuse_interval` has elapsed, which points at the browser holding a token one
+  rotation behind rather than at the interval itself. Unresolved, and recorded in ticket 07 rather
+  than papered over.
 
   The lesson generalises beyond this case: anti-enumeration is ours to guarantee, not the
   provider's to supply. A criterion that depends on a third party's error-shaping is one upgrade

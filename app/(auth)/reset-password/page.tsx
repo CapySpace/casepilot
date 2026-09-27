@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
-import { currentUser } from "@/lib/auth/dal";
+import { recoveringUser } from "@/lib/auth/dal";
 import { authMessages } from "@/lib/auth/messages";
 
 import { ResetPasswordForm } from "./reset-password-form";
@@ -20,21 +20,20 @@ export const metadata: Metadata = {
  * used, or has run out — so this page says so and offers another, rather than presenting a form
  * that cannot work.
  *
- * Note what a session does *not* prove: that it came from a recovery link. Somebody already signed
- * in can open this page and set a new password without stating the old one, because
- * `secure_password_change` is off — the provider default, which the spec chose deliberately under
- * "session policy takes the provider's defaults". For a signed-in User that is an ordinary change
- * of password; the cost is that temporary access to an unlocked machine can be turned into
- * permanent access. Requiring reauthentication is a change-password feature with its own criteria,
- * not part of recovery, so it is recorded in ADR-0001 rather than bolted on here.
+ * An ordinary signed-in session is *not* enough, and the check is for a session that came from a
+ * link rather than for any session at all. `secure_password_change` is off, so the provider would
+ * happily let somebody already signed in set a new password without stating the old one — which
+ * would turn borrowed access to an unlocked machine into permanent access. Recovery is for people
+ * who cannot sign in; changing a password while signed in is a different feature, with its own
+ * criteria, and Phase 1 does not have it.
  */
 export default async function ResetPasswordPage() {
-  const user = await currentUser();
+  const user = await recoveringUser();
 
   if (!user) {
     return (
       <div className="w-full rounded-2xl border border-border bg-card p-lg text-center shadow-level-1 sm:p-xl">
-        <h1 className="text-headline-md">{authMessages.linkUnusable}</h1>
+        <h1 className="text-headline-md">That link cannot be used</h1>
         <p className="mt-1.5 text-body-md text-muted-foreground">{authMessages.linkExpired}</p>
         <Button asChild className="mt-lg h-11 w-full text-body-lg">
           <Link href="/forgot-password">

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { messageForLinkProblem } from "@/lib/auth/messages";
+import { messageForNotice } from "@/lib/auth/messages";
 
 import { SignInForm } from "./sign-in-form";
 
@@ -13,7 +13,7 @@ export default async function SignInPage({ searchParams }: PageProps<"/sign-in">
   // Set by the confirmation endpoint when a link could not be used. It carries a key, not a
   // message, so the only words that can appear here are CasePilot's own.
   const { error } = await searchParams;
-  const notice = messageForLinkProblem(error);
+  const notice = messageForNotice(error);
 
   return (
     <div className="w-full rounded-2xl border border-border bg-card p-lg shadow-level-1 sm:p-xl">
@@ -31,7 +31,12 @@ export default async function SignInPage({ searchParams }: PageProps<"/sign-in">
         </p>
       </div>
 
-      <SignInForm notice={notice} />
+      {/*
+        Keyed on the notice: `useActionState` reads its initial state only when it mounts, so a
+        client-side navigation that changes `?error=` would otherwise leave the previous message
+        showing.
+      */}
+      <SignInForm key={notice ?? "none"} notice={notice} />
 
       <div className="mt-lg border-t border-border pt-md text-center text-body-sm text-muted-foreground">
         New to CasePilot?{" "}

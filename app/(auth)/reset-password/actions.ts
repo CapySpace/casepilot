@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 
 import { authMessages, messageForAuthError } from "@/lib/auth/messages";
 import { validateNewPassword, type NewPasswordErrors } from "@/lib/auth/validation";
+import { recoveringUser } from "@/lib/auth/dal";
 import { createClient } from "@/lib/supabase/server";
 
 export type ResetPasswordState = {
@@ -26,15 +27,13 @@ export async function resetPassword(
     return { errors, message: null };
   }
 
-  const supabase = await createClient();
-
-  // The session here came from verifying the recovery token, so possession of the link is what
-  // authorises the change. Without one there is nothing to update, and saying so is better than a
-  // provider error about a missing session.
-  const { data } = await supabase.auth.getUser();
-  if (!data.user) {
+  // Checked here as well as on the page, because this action is reachable without ever rendering
+  // it. Possession of the link is what authorises the change; an ordinary session is not enough.
+  if (!(await recoveringUser())) {
     return { errors: {}, message: authMessages.linkExpired };
   }
+
+  const supabase = await createClient();
 
   const { error } = await supabase.auth.updateUser({ password });
   if (error) {

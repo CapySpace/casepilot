@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "test": "npm run test:unit && npm run test:e2e",
     "test:unit": "vitest run",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "verify:renewal": "bash scripts/verify-silent-renewal.sh"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

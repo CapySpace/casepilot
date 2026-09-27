@@ -211,6 +211,13 @@ and utility bars. Nothing is crowded and nothing floats unanchored.
 >
 > So `rounded-lg` is 8px, not 16px. Read the table, not the name.
 >
+> **On the 8px rhythm and Tailwind's numeric steps.** The named scale above is what layout uses:
+> `gap-lg`, `px-md`, `py-xl`. Tailwind's own numeric steps — `mt-1.5`, `pl-3.5`, `size-3.5`, `h-11`
+> — are allowed *inside* a control, where the rhythm is set by the control's own proportions rather
+> than by the grid: the 44px field height, the 6px gap between a label and its field, the 14px icon
+> beside a line of 14px text. They are on Tailwind's scale, not arbitrary bracket values, and
+> `h-[44px]` remains forbidden. If a value wants to be reused across components, it wants a token.
+>
 > The §5 spacing scale is exposed as `gap-md`, `px-lg`, `py-xl` and so on, matching the names above.
 > Because those share Tailwind's t-shirt names they also shadow its container scale, so `max-w-md`
 > is `1rem` here rather than the 28rem Tailwind would give you. Widths take a `--container-*` token

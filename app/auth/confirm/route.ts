@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import { parseConfirmationLink } from "@/lib/auth/confirmation";
-import type { LinkProblem } from "@/lib/auth/messages";
+import type { AuthNotice } from "@/lib/auth/messages";
 import { createClient } from "@/lib/supabase/server";
 
 /**
@@ -20,14 +20,23 @@ export async function GET(request: NextRequest) {
   // absolute URL would mean trusting `request.nextUrl.origin`, which is derived from a Host header
   // the caller supplies — and this endpoint is reachable by anyone holding a link.
   const sendTo = (path: string) =>
-    new NextResponse(null, { status: 303, headers: { Location: path } });
-  const withProblem = (problem: LinkProblem) => sendTo(`/sign-in?error=${problem}`);
+    new NextResponse(null, {
+      status: 303,
+      headers: {
+        Location: path,
+        // The token is in the URL, so this response must not be stored and must not travel on to
+        // the destination page as a referrer.
+        "Cache-Control": "no-store",
+        "Referrer-Policy": "no-referrer",
+      },
+    });
+  const withNotice = (notice: AuthNotice) => sendTo(`/sign-in?error=${notice}`);
 
   const link = parseConfirmationLink(request.nextUrl.searchParams);
 
   // Malformed, or a type this product never issues. Distinguishable from a token the provider
   // refused, and worth distinguishing: this one is not going to start working.
-  if (!link) return withProblem("invalid-link");
+  if (!link) return withNotice("invalid-link");
 
   const supabase = await createClient();
   const { error } = await supabase.auth.verifyOtp({
@@ -36,13 +45,19 @@ export async function GET(request: NextRequest) {
   });
 
   if (error) {
-    // A stale link in an inbox is the commonest way to get here, and somebody who is already
-    // signed in has nothing to fix. Send them where the link was taking them rather than showing
-    // them an error about a thing that has already happened.
-    const { data } = await supabase.auth.getUser();
-    if (data.user) return sendTo(link.next);
+    // A spent *signup* link in an inbox is the commonest way to get here, and somebody who is
+    // already signed in has nothing left to fix — so send them where the link was going rather
+    // than explain an error about something that has already happened.
+    //
+    // Only for signup. A recovery link that fails verification must stay failed: otherwise anybody
+    // holding a session could write themselves a link with a nonsense token and be handed the
+    // destination of their choosing, which is a failed check reported as a success.
+    if (link.type === "signup") {
+      const { data } = await supabase.auth.getUser();
+      if (data.user) return sendTo(link.next);
+    }
 
-    return withProblem("expired-link");
+    return withNotice("expired-link");
   }
 
   return sendTo(link.next);

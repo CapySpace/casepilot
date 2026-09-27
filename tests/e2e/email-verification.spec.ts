@@ -1,14 +1,7 @@
 import { expect, test } from "@playwright/test";
 
-import { formError, signIn } from "../support/flows";
+import { asSomebodyElse, confirmationUrl, formError, signIn } from "../support/flows";
 import { latestEmailTo, mintSignupToken, newEmail } from "../support/users";
-
-function confirmationUrl(tokenHash: string, options: { type?: string; next?: string } = {}) {
-  const { type = "signup", next } = options;
-  const query = new URLSearchParams({ token_hash: tokenHash, type });
-  if (next !== undefined) query.set("next", next);
-  return `/auth/confirm?${query}`;
-}
 
 test("following the link verifies the address and signs the User in", async ({ page }) => {
   const { user, tokenHash } = await mintSignupToken();
@@ -86,19 +79,15 @@ test("a tampered token is refused and explained", async ({ page }) => {
  * verified against the running stack — so this covers both criteria. What it proves either way is
  * that the token is spent: a second use gets nobody in.
  */
-test("a consumed token cannot be replayed", async ({ page, context }) => {
+test("a consumed token cannot be replayed", async ({ page }) => {
   const { tokenHash } = await mintSignupToken();
   await page.goto(confirmationUrl(tokenHash));
   await expect(page).toHaveURL("/");
 
-  // A different browser entirely: somebody who intercepted the email, not the person who used it.
-  const thief = await context.browser()!.newContext();
-  const thiefPage = await thief.newPage();
-  await thiefPage.goto(confirmationUrl(tokenHash));
+  const theirPage = await asSomebodyElse(page, confirmationUrl(tokenHash));
 
-  await expect(thiefPage).toHaveURL(/\/sign-in/);
-  await expect(formError(thiefPage)).toContainText("expired or has already been used");
-  await thief.close();
+  await expect(theirPage).toHaveURL(/\/sign-in/);
+  await expect(formError(theirPage)).toContainText("expired or has already been used");
 });
 
 /**

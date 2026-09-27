@@ -2,9 +2,9 @@ import { describe, expect, it } from "vitest";
 
 import {
   authMessages,
-  linkProblems,
+  authNotices,
   messageForAuthError,
-  messageForLinkProblem,
+  messageForNotice,
   PROVIDER_ERROR_MESSAGES,
 } from "@/lib/auth/messages";
 
@@ -18,17 +18,17 @@ describe("the catalogue", () => {
     }
   });
 
-  it("has a message for every link problem it can put in a URL", () => {
-    for (const [key, message] of Object.entries(linkProblems)) {
-      expect(messageForLinkProblem(key), `problem ${key}`).toBe(message);
-      expect(everyMessage, `problem ${key} maps outside the catalogue`).toContain(message);
+  it("has a message for every notice it can put in a URL", () => {
+    for (const [key, message] of Object.entries(authNotices)) {
+      expect(messageForNotice(key), `notice ${key}`).toBe(message);
+      expect(everyMessage, `notice ${key} maps outside the catalogue`).toContain(message);
     }
   });
 
-  it("ignores a link problem it does not issue", () => {
-    expect(messageForLinkProblem("made-up")).toBeNull();
-    expect(messageForLinkProblem(undefined)).toBeNull();
-    expect(messageForLinkProblem(["expired-link"])).toBeNull();
+  it("ignores a notice it does not issue", () => {
+    expect(messageForNotice("made-up")).toBeNull();
+    expect(messageForNotice(undefined)).toBeNull();
+    expect(messageForNotice(["expired-link"])).toBeNull();
   });
 
   it("falls back rather than crashing on anything unrecognised", () => {

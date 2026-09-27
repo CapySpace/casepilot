@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
-import { formError, signIn, signOut } from "../support/flows";
+import { asSomebodyElse, confirmationUrl, formError, signIn, signOut } from "../support/flows";
 import {
   createVerifiedUser,
   emailsSentTo,
@@ -12,12 +12,7 @@ import {
 const NEW_PASSWORD = "brandnewhorse9";
 
 function recoveryUrl(tokenHash: string) {
-  const query = new URLSearchParams({
-    token_hash: tokenHash,
-    type: "recovery",
-    next: "/reset-password",
-  });
-  return `/auth/confirm?${query}`;
+  return confirmationUrl(tokenHash, { type: "recovery", next: "/reset-password" });
 }
 
 async function requestReset(page: Page, email: string) {
@@ -108,7 +103,7 @@ test("the new password must meet the same rule as registration", async ({ page }
   const user = await createVerifiedUser();
   await page.goto(recoveryUrl(await mintRecoveryToken(user.email)));
 
-  const rule = page.locator("#password-rule");
+  const rule = page.getByText(/At least 8 characters|Password meets the requirements/);
   await expect(rule).toHaveText(/At least 8 characters/);
   await page.getByLabel("New password", { exact: true }).fill("short1");
   await expect(rule).toHaveText(/At least 8 characters/);
@@ -143,20 +138,50 @@ test("an expired or tampered reset link is explained", async ({ page }) => {
  * An intercepted email is the threat this guards against: the link is worth nothing once used, so
  * whoever reads the inbox second gets nowhere.
  */
-test("a used reset link cannot be replayed by somebody else", async ({ page, context }) => {
+test("a used reset link cannot be replayed by somebody else", async ({ page }) => {
   const user = await createVerifiedUser();
   const tokenHash = await mintRecoveryToken(user.email);
   await page.goto(recoveryUrl(tokenHash));
   await chooseNewPassword(page, NEW_PASSWORD);
   await expect(page).toHaveURL("/");
 
-  const thief = await context.browser()!.newContext();
-  const thiefPage = await thief.newPage();
-  await thiefPage.goto(recoveryUrl(tokenHash));
+  const theirPage = await asSomebodyElse(page, recoveryUrl(tokenHash));
 
-  await expect(thiefPage).toHaveURL(/\/sign-in/);
-  await expect(formError(thiefPage)).toContainText("expired or has already been used");
-  await thief.close();
+  await expect(theirPage).toHaveURL(/\/sign-in/);
+  await expect(formError(theirPage)).toContainText("expired or has already been used");
+});
+
+/**
+ * The gate this screen actually needs. A session proves somebody is signed in; it does not prove
+ * they opened the email. Without this, borrowed access to an unlocked machine becomes permanent
+ * access, because the provider will change a password for any session without asking for the old
+ * one.
+ */
+test("a signed-in User cannot set a new password without following a link", async ({ page }) => {
+  const user = await createVerifiedUser();
+  await signIn(page, user);
+  await expect(page).toHaveURL("/");
+
+  await page.goto("/reset-password");
+
+  await expect(page.getByRole("heading", { name: "That link cannot be used" })).toBeVisible();
+  await expect(page.getByLabel("New password", { exact: true })).toHaveCount(0);
+});
+
+/**
+ * The same gate, at the endpoint that fronts it. A failed token check must stay failed: otherwise
+ * anybody holding a session could write themselves a link with a nonsense token and be handed the
+ * destination of their choosing.
+ */
+test("a signed-in User cannot forge a recovery link to reach the form", async ({ page }) => {
+  const user = await createVerifiedUser();
+  await signIn(page, user);
+  await expect(page).toHaveURL("/");
+
+  await page.goto(recoveryUrl("not-a-real-token"));
+
+  await expect(page).toHaveURL(/\/sign-in/);
+  await expect(formError(page)).toContainText("expired or has already been used");
 });
 
 test("landing on the form without following a link explains what to do", async ({ page }) => {
