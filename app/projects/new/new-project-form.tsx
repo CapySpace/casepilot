@@ -2,13 +2,13 @@
 
 import { FolderPlus, Plus } from "lucide-react";
 import Link from "next/link";
-import { useActionState, useState } from "react";
+import { useActionState } from "react";
 
 import { FormAlert, TextareaField, TextField } from "@/components/form/fields";
 import { Button } from "@/components/ui/button";
 import { MAXIMUM_DESCRIPTION_LENGTH, MAXIMUM_NAME_LENGTH } from "@/lib/projects/limits";
-import { validateProjectDetails } from "@/lib/projects/validation";
 
+import { useProjectDetails } from "../_components/use-project-details";
 import { createProject, type NewProjectState } from "./actions";
 
 const initialState: NewProjectState = {
@@ -20,24 +20,9 @@ const initialState: NewProjectState = {
 export function NewProjectForm() {
   const [state, formAction, pending] = useActionState(createProject, initialState);
 
-  /*
-    The same rules the action runs, run here too — the duplication registration's validation module
-    exists for. This half is for immediate feedback: being told a name is too long after a round trip,
-    when the limit was on screen the whole time, is a worse form than one that answers as you type.
-
-    Mirrored from the fields rather than controlling them, so the inputs stay uncontrolled and a
-    submission still carries what was typed when the client bundle has not loaded.
-  */
-  const [typed, setTyped] = useState({ name: state.values.name, description: state.values.description });
-  const [touched, setTouched] = useState({ name: false, description: false });
-  const live = validateProjectDetails(typed);
-
-  // A field the User has not been near yet is not wrong, it is empty. Until they touch it, the only
-  // thing worth reporting is what the server already said about a submission they made.
-  const nameError = (touched.name ? live.name : undefined) ?? state.errors.name;
-  const descriptionError = (touched.description ? live.description : undefined) ?? state.errors.description;
-
-  const invalid = Object.keys(live).length > 0;
+  // The same rules the action runs, mirrored here so a refusal costs no round trip. The action runs
+  // them regardless, because it is reachable without a form.
+  const details = useProjectDetails(state.values, state.errors);
 
   return (
     /*
@@ -45,18 +30,18 @@ export function NewProjectForm() {
       in its own words and its own styling while every other problem on this form is reported in
       ours. The server validates regardless, because it has to.
 
-      `onSubmit` is the browser's half of the refusal. It stops a submission that is already known to
-      be wrong — a blank name does not need a round trip to be recognised — and marks both fields
-      touched so the reasons appear. With no client bundle the handler never runs, the form posts
-      natively, and the action refuses instead: the same two messages, one round trip later.
+      `onSubmit` is the browser's half of the refusal. It stops a submission already known to be
+      wrong — a blank name does not need a round trip to be recognised — and reveals every reason at
+      once. With no client bundle the handler never runs, the form posts natively, and the action
+      refuses instead: the same messages, one round trip later.
     */
     <form
       action={formAction}
       noValidate
       onSubmit={(event) => {
-        if (!invalid) return;
+        if (!details.invalid) return;
         event.preventDefault();
-        setTouched({ name: true, description: true });
+        details.revealEverything();
       }}
       className="flex flex-col gap-md"
     >
@@ -70,9 +55,8 @@ export function NewProjectForm() {
         placeholder="e.g. Mobile Banking App"
         autoComplete="off"
         defaultValue={state.values.name}
-        onChange={(event) => setTyped((fields) => ({ ...fields, name: event.target.value }))}
-        onBlur={() => setTouched((fields) => ({ ...fields, name: true }))}
-        error={nameError}
+        {...details.fieldProps("name")}
+        error={details.errors.name}
         // The limit before submission, not after. Being told a rule you could not have known is the
         // failure this line exists to prevent. Plain text, because the field frame is what wraps a
         // hint in a paragraph and names it to a screen reader.
@@ -86,11 +70,8 @@ export function NewProjectForm() {
         placeholder="What this project is for, and who is testing it."
         rows={4}
         defaultValue={state.values.description}
-        onChange={(event) =>
-          setTyped((fields) => ({ ...fields, description: event.target.value }))
-        }
-        onBlur={() => setTouched((fields) => ({ ...fields, description: true }))}
-        error={descriptionError}
+        {...details.fieldProps("description")}
+        error={details.errors.description}
         note={<span className="text-body-sm text-muted-foreground">Optional</span>}
         hint={`Up to ${MAXIMUM_DESCRIPTION_LENGTH} characters.`}
       />

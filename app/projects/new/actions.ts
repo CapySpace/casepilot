@@ -7,7 +7,11 @@ import { redirect } from "next/navigation";
 
 import { verifySession } from "@/lib/auth/dal";
 import { projectMessages } from "@/lib/projects/messages";
-import { validateProjectDetails, type ProjectErrors } from "@/lib/projects/validation";
+import {
+  validateProjectDetails,
+  type ProjectDetails,
+  type ProjectErrors,
+} from "@/lib/projects/validation";
 import { createClient } from "@/lib/supabase/server";
 
 export type NewProjectState = {
@@ -15,10 +19,7 @@ export type NewProjectState = {
   /** A failure that belongs to no single field. */
   message: string | null;
   /** Echoed back so a rejected attempt does not also cost the User what they typed. */
-  values: {
-    name: string;
-    description: string;
-  };
+  values: ProjectDetails;
 };
 
 export async function createProject(

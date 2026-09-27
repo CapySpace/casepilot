@@ -58,6 +58,12 @@ barely-there ambient shadow, never by drama. Trust here comes from precision and
 * **Pale Mint Wash (`#d9f7ef` sidebar / `#d4f4ef` chips)** — the tinted container behind anything green:
   active nav item, *Passed* chip, resolved-defect tag.
 
+  > **In code.** The two tints are two tokens, because they mean different things. The chip value is
+  > `--passed-container` and belongs to the status scale. The sidebar value is `--brand-wash`
+  > (`bg-brand-wash`), added when the Project sidebar needed the active item's pill: it is *brand*,
+  > not status, so an active navigation item does not claim that anything passed. Reaching for
+  > `bg-passed-container` there would put a verdict in the navigation.
+
 ### Navigation & Reference
 
 * **Navigational Sapphire (`#005bb2`)** — every identifier and link: case IDs (`TC-101`), build versions
@@ -228,6 +234,12 @@ and utility bars. Nothing is crowded and nothing floats unanchored.
 > `text-body-sm`, `text-label-md`, `text-label-sm`. Each carries its own line height, tracking and
 > weight, so picking a step gives all four. Never reach for `text-[40px]`: it silently drops the
 > tracking that makes large type in this system cohere.
+
+> **In code.** Two of §5's own numbers are tokens, for the reason the radius table gives: a value
+> reused across components wants a name. `--container-sidebar` (`w-sidebar`, 16rem) is the sidebar's
+> width, which every later phase's pages sit beside, and `--breakpoint-desktop` (`desktop:`, 1200px)
+> is the threshold above which the three-zone frame applies — Tailwind's own `lg` and `xl` straddle
+> the 1200px line this section names, so neither is the breakpoint the design means.
 
 **Alignment:** everything left-aligns to a shared grid; only numeric values, timestamps, counts and
 trailing actions align right, so the eye can run down a column of figures uninterrupted.

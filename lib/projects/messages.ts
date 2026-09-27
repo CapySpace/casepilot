@@ -31,4 +31,17 @@ export const projectMessages = {
    * something unexpected happened, and promising success on a retry would be a guess.
    */
   couldNotCreate: "Something went wrong creating the project. Nothing has been saved.",
+
+  couldNotUpdate: "Something went wrong saving the project. Nothing has been changed.",
+
+  /** Said after a save that worked, because a form that goes quiet leaves the User guessing. */
+  projectUpdated: "Project updated.",
+
+  /**
+   * Shown to a Member on the settings page, where an Owner sees the form.
+   *
+   * It names the Owner as the person who can, rather than only saying no: somebody who needs a
+   * project renamed then knows who to ask.
+   */
+  onlyOwnerCanEdit: "Only the project owner can change these details.",
 } as const;

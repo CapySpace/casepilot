@@ -17,6 +17,27 @@ import { createClient } from "@/lib/supabase/server";
 
 export type ProjectRole = "owner" | "member";
 
+/**
+ * Reading the single row PostgREST wraps an embedded aggregate in.
+ *
+ * It throws rather than falling back to zero, because every number on these pages is a claim about a
+ * Project: "0 members" for a Project the caller is standing inside is a visible lie, and a lie is
+ * worse than a page that fails. The same argument as the count being an aggregate in the first place.
+ */
+function countOf(project: { members: { count: number }[] }): number {
+  const members = project.members[0];
+  if (!members) throw new Error("Membership count missing from the Projects query");
+
+  return members.count;
+}
+
+function roleOf(project: { id: string; mine: { role: ProjectRole }[] }): ProjectRole {
+  const membership = project.mine[0];
+  if (!membership) throw new Error(`No Membership came back for Project ${project.id}`);
+
+  return membership.role;
+}
+
 /** One row of the Projects list. */
 export type ProjectSummary = {
   id: string;
@@ -73,8 +94,8 @@ export const listMyProjects = cache(async (): Promise<ProjectSummary[]> => {
     id: project.id,
     name: project.name,
     description: project.description,
-    role: project.mine[0].role,
-    memberCount: project.members[0].count,
+    role: roleOf(project),
+    memberCount: countOf(project),
   }));
 });
 
@@ -84,6 +105,8 @@ export type Project = {
   name: string;
   description: string | null;
   role: ProjectRole;
+  memberCount: number;
+  createdAt: string;
 };
 
 type MembershipRow = {
@@ -92,6 +115,8 @@ type MembershipRow = {
     id: string;
     name: string;
     description: string | null;
+    created_at: string;
+    members: { count: number }[];
   };
 };
 
@@ -111,7 +136,9 @@ export const requireProjectMembership = cache(async (projectId: string): Promise
 
   const { data, error } = await supabase
     .from("project_members")
-    .select("role, project:projects!inner(id, name, description)")
+    .select(
+      "role, project:projects!inner(id, name, description, created_at, members:project_members(count))",
+    )
     .eq("user_id", user.id)
     .eq("project_id", projectId)
     .maybeSingle<MembershipRow>();
@@ -131,5 +158,23 @@ export const requireProjectMembership = cache(async (projectId: string): Promise
     name: data.project.name,
     description: data.project.description,
     role: data.role,
+    memberCount: countOf(data.project),
+    createdAt: data.project.created_at,
   };
+});
+
+/**
+ * The Project at that id, if the caller owns it — and a 404 otherwise, for a non-member and a Member
+ * alike.
+ *
+ * A Member being told "you are not the owner" would be a truthful answer to a question they should not
+ * be able to ask from a URL, so the two refusals are deliberately the same one. The interface does not
+ * offer them the page, row-level security refuses the write behind it, and this refuses the render.
+ */
+export const requireProjectOwnership = cache(async (projectId: string): Promise<Project> => {
+  const project = await requireProjectMembership(projectId);
+
+  if (project.role !== "owner") notFound();
+
+  return project;
 });

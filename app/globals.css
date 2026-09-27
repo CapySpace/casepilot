@@ -46,6 +46,7 @@
 
   /* Brand and reference colours that are not one of shadcn's semantic slots. */
   --color-brand: var(--brand);
+  --color-brand-wash: var(--brand-wash);
   --color-reference: var(--reference);
 
   /* The status scale (DESIGN.md §2). Five mutually exclusive execution states, each a triplet of
@@ -138,6 +139,12 @@
   --container-auth-card: 27.5rem; /* the authentication screens, taken from the designs */
   --container-reading: 48rem; /* a readable column of running text */
   --container-shell: 80rem; /* the full-width application frame */
+  --container-sidebar: 16rem; /* the Project sidebar, which every later phase's pages sit beside */
+
+  /* DESIGN.md §5 puts the three-zone desktop frame at 1200px and collapses the sidebar below it.
+   * Tailwind's own `lg` (1024px) and `xl` (1280px) both straddle that line, so the breakpoint the
+   * design actually names is a token too. */
+  --breakpoint-desktop: 75rem;
 
   /* Level 1 elevation: a hairline border plus an ambient navy-tinted shadow "so soft it reads as a
    * held breath rather than a lift" (DESIGN.md §4). */
@@ -160,6 +167,10 @@
   /* Brand and primary action. Signal Emerald announces; Deep Pine Green acts — emerald is too
    * light to carry white text, so every committed action darkens to pine (DESIGN.md §2). */
   --brand: #00c696; /* Signal Emerald */
+  /* Pale Mint Wash — the tinted container behind anything brand-coloured, named in DESIGN.md §2 and
+   * needed by the sidebar's active navigation item. The sidebar value, not the chip one (#d4f4ef):
+   * those are two tints in the design and the chip's is already spoken for by --passed-container. */
+  --brand-wash: #d9f7ef;
   --primary: #006c50; /* Deep Pine Green */
   --primary-foreground: #ffffff;
 
