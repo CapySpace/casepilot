@@ -6,7 +6,7 @@ import { useId, useState, type ComponentProps, type ReactNode } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { PASSWORD_RULE } from "@/lib/auth/messages";
+import { PASSWORD_RULE, PASSWORD_RULE_MET } from "@/lib/auth/messages";
 import { isPasswordValid } from "@/lib/auth/validation";
 
 /**
@@ -161,7 +161,7 @@ export function PasswordRuleHint({ password, id }: { password: string; id: strin
       {met ? (
         <>
           <Check className="size-3.5" aria-hidden="true" />
-          Password meets the requirements
+          {PASSWORD_RULE_MET}
         </>
       ) : (
         PASSWORD_RULE

@@ -2,6 +2,8 @@ import { Mail } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { authMessages } from "@/lib/auth/messages";
+
 export const metadata: Metadata = {
   title: "Check your email · CasePilot",
 };
@@ -29,21 +31,16 @@ export default async function CheckEmailPage({
 
       <h1 className="text-headline-md">Check your email</h1>
 
-      <p className="mt-1.5 text-body-md text-muted-foreground">
-        {address ? (
-          <>
-            We have sent a confirmation link to{" "}
-            <span className="font-mono text-foreground">{address}</span>. Follow it to finish
-            signing up.
-          </>
-        ) : (
-          <>We have sent you a confirmation link. Follow it to finish signing up.</>
-        )}
-      </p>
+      {address ? (
+        <p className="mt-1.5 text-body-md text-muted-foreground">
+          Sent to <span className="font-mono text-foreground">{address}</span>.
+        </p>
+      ) : null}
+
+      <p className="mt-1.5 text-body-md text-muted-foreground">{authMessages.confirmationSent}</p>
 
       <p className="mt-md text-body-sm text-muted-foreground">
-        You cannot sign in until your address is confirmed. If nothing arrives within a few minutes,
-        check your spam folder.
+        {authMessages.confirmBeforeSignIn}
       </p>
 
       <div className="mt-lg border-t border-border pt-md text-body-sm text-muted-foreground">

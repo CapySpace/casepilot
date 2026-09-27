@@ -16,12 +16,12 @@ validation rules and the translation map: input in, string out.
 
 **Status:** ready-for-agent
 
-- [ ] Every user-facing authentication message in the product comes from the central catalogue; none is formatted inline
-- [ ] No raw provider error text can reach a User under any failure
-- [ ] An unrecognised provider error produces a sensible generic message rather than a blank screen or a crash
-- [ ] A User whose session has expired is returned to sign-in with an explanation of what happened
-- [ ] Access is renewed silently in the background, so a User is never interrupted mid-task by a routine expiry
-- [ ] Unit tests cover the validation rules for email and password
-- [ ] Unit tests cover the translation map, including every catalogued message and the unrecognised-error fallback
-- [ ] Tests assert only observable behaviour — the message a User sees — never the shape of internal objects or which function called which
-- [ ] No test mocks the authentication provider; the value of this phase's tests lies in exercising its real behaviour
+- [x] Every user-facing authentication message in the product comes from the central catalogue; none is formatted inline
+- [x] No raw provider error text can reach a User under any failure
+- [x] An unrecognised provider error produces a sensible generic message rather than a blank screen or a crash
+- [x] A User whose session has expired is returned to sign-in with an explanation of what happened
+- [x] Access is renewed silently in the background, so a User is never interrupted mid-task by a routine expiry
+- [x] Unit tests cover the validation rules for email and password
+- [x] Unit tests cover the translation map, including every catalogued message and the unrecognised-error fallback
+- [x] Tests assert only observable behaviour — the message a User sees — never the shape of internal objects or which function called which
+- [x] No test mocks the authentication provider; the value of this phase's tests lies in exercising its real behaviour

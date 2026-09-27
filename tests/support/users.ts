@@ -242,3 +242,37 @@ export async function mintRecoveryToken(email: string): Promise<string> {
   const { hashed_token: tokenHash } = (await response.json()) as { hashed_token: string };
   return tokenHash;
 }
+
+/**
+ * Ends every session a User has, at the provider.
+ *
+ * What a User experiences afterwards is what they experience when a session expires: the browser
+ * still holds a token that looks valid, and the provider no longer honours it. Waiting an hour for
+ * a genuine expiry is not a test.
+ *
+ * Done entirely through the public API — sign in, then sign out globally — rather than by reaching
+ * into the provider's tables. A global sign-out revokes every session including the browser's,
+ * which is the state being induced.
+ */
+export async function revokeSessionsFor(user: SeededUser): Promise<void> {
+  const url = requiredEnv("NEXT_PUBLIC_SUPABASE_URL");
+  const key = requiredEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY");
+
+  const signedIn = await fetch(`${url}/auth/v1/token?grant_type=password`, {
+    method: "POST",
+    headers: { apikey: key, "Content-Type": "application/json" },
+    body: JSON.stringify({ email: user.email, password: user.password }),
+  });
+  if (!signedIn.ok) {
+    throw new Error(`Could not sign in as ${user.email} to revoke: ${signedIn.status}`);
+  }
+  const { access_token: accessToken } = (await signedIn.json()) as { access_token: string };
+
+  const signedOut = await fetch(`${url}/auth/v1/logout?scope=global`, {
+    method: "POST",
+    headers: { apikey: key, Authorization: `Bearer ${accessToken}` },
+  });
+  if (!signedOut.ok) {
+    throw new Error(`Could not revoke sessions for ${user.email}: ${signedOut.status}`);
+  }
+}

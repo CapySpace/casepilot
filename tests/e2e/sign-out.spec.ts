@@ -79,5 +79,9 @@ test("the session is revoked, not just cleared from the browser", async ({ page,
   await context.addCookies(signedInCookies);
   await page.goto("/");
 
-  await expect(page).toHaveURL("/sign-in");
+  // Sent back to sign-in, and told why: replaying a dead session is a session that has ended, and
+  // the access token stays signature-valid long enough for this to be the Data Access Layer's
+  // catch rather than the proxy's.
+  await expect(page).toHaveURL(/\/sign-in/);
+  await expect(page.locator("form").getByRole("alert")).toContainText("Your session has ended");
 });

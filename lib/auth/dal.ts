@@ -25,7 +25,12 @@ export type SignedInUser = {
  */
 export const verifySession = cache(async (): Promise<SignedInUser> => {
   const user = await currentUser();
-  if (!user) redirect("/sign-in");
+
+  // Reaching here at all means the proxy's claims check passed, so there *was* a session a moment
+  // ago. If the provider now says otherwise it has been revoked or has expired in between — which
+  // is exactly the case ADR-0002 says this layer exists to catch, and the one a User is owed an
+  // explanation for rather than a silent bounce.
+  if (!user) redirect("/sign-in?error=session-expired");
 
   return user;
 });

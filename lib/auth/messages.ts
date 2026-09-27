@@ -5,7 +5,9 @@
  * internals and makes the product feel unfinished. Anything unrecognised still produces something
  * sensible rather than a blank screen.
  *
- * Ticket 07 completes this catalogue; it carries what tickets up to this point need.
+ * What belongs here: anything that tells a User the outcome or state of an authentication attempt.
+ * What does not: the words that name a screen or a control — headings, field labels, button text.
+ * Those are the interface; these are what it says back.
  */
 
 /**
@@ -23,6 +25,9 @@
  * Shown as the hint under the password field, and reused in the message a failed one gets.
  */
 export const PASSWORD_RULE = "At least 8 characters, including a letter and a number";
+
+/** Its other half: what the same hint says once the rule is met. */
+export const PASSWORD_RULE_MET = "Password meets the requirements";
 
 export const authMessages = {
   /**
@@ -61,6 +66,23 @@ export const authMessages = {
   linkInvalid: "That link is not valid. Open the most recent email we sent you and use the link in it.",
   linkExpired:
     "That link has expired or has already been used. Links last about an hour — request a new one and follow it from your email.",
+  linkUnusable: "That link cannot be used.",
+
+  /**
+   * Shown when a session that was working has stopped working — expired, or ended somewhere else.
+   *
+   * Distinct from arriving signed out, which needs no explanation at all. Being returned to a
+   * sign-in form mid-task with no account of why is the thing this prevents.
+   */
+  sessionExpired: "Your session has ended. Sign in again to pick up where you left off.",
+
+  // Registration and recovery both end on a page that says something was sent. Neither says
+  // whether the address was registered, and the recovery one especially must not.
+  confirmationSent: "Follow the link we have just sent you to finish signing up.",
+  confirmBeforeSignIn:
+    "You cannot sign in until your address is confirmed. If nothing arrives within a few minutes, check your spam folder.",
+  resetLinkSent:
+    "If that address belongs to a CasePilot User, a link to choose a new password is on its way. Check your inbox, and your spam folder.",
 } as const;
 
 /** The shape of a provider error, narrowed to what the catalogue is allowed to look at. */
@@ -69,7 +91,8 @@ type ProviderError = {
   message?: string | null;
 };
 
-const BY_CODE: Record<string, string> = {
+/** Every provider code CasePilot translates. Exported so a test can walk it. */
+export const PROVIDER_ERROR_MESSAGES: Record<string, string> = {
   invalid_credentials: authMessages.invalidCredentials,
   email_not_confirmed: authMessages.emailNotConfirmed,
   // Should be unreachable: the form enforces the same rule before submitting. Mapped anyway,
@@ -93,6 +116,7 @@ const BY_CODE: Record<string, string> = {
 export const linkProblems = {
   "invalid-link": authMessages.linkInvalid,
   "expired-link": authMessages.linkExpired,
+  "session-expired": authMessages.sessionExpired,
 } as const;
 
 export type LinkProblem = keyof typeof linkProblems;
@@ -108,5 +132,5 @@ export function messageForAuthError(error: ProviderError | null | undefined): st
   const code = error?.code;
   if (!code) return authMessages.unexpected;
 
-  return BY_CODE[code] ?? authMessages.unexpected;
+  return PROVIDER_ERROR_MESSAGES[code] ?? authMessages.unexpected;
 }

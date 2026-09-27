@@ -36,7 +36,7 @@ test("a User recovers their password and signs in with the new one", async ({ pa
   const user = await createVerifiedUser();
 
   await requestReset(page, user.email);
-  await expect(page.getByText("Instructions sent")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Instructions sent" })).toBeVisible();
 
   await page.goto(recoveryUrl(await mintRecoveryToken(user.email)));
   await expect(page).toHaveURL("/reset-password");
@@ -172,7 +172,7 @@ test("the link arrives by email and completes recovery", async ({ page }) => {
   const user = await createVerifiedUser();
 
   await requestReset(page, user.email);
-  await expect(page.getByText("Instructions sent")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Instructions sent" })).toBeVisible();
 
   let html = "";
   await expect

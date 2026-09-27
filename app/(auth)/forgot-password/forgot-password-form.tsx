@@ -6,6 +6,8 @@ import { useActionState } from "react";
 
 import { Button } from "@/components/ui/button";
 
+import { authMessages } from "@/lib/auth/messages";
+
 import { FormAlert, TextField } from "../_components/fields";
 import { requestPasswordReset, type ForgotPasswordState } from "./actions";
 
@@ -44,10 +46,7 @@ export function ForgotPasswordForm() {
             screen: the same words appear either way, so nobody can use it to find out who has a
             login.
           */}
-          <p className="mt-1.5 text-body-md text-muted-foreground">
-            If that address belongs to a CasePilot User, a link to choose a new password is on its
-            way. Check your inbox, and your spam folder.
-          </p>
+          <p className="mt-1.5 text-body-md text-muted-foreground">{authMessages.resetLinkSent}</p>
         </div>
         <div className="w-full border-t border-border pt-md text-body-sm">
           <BackToSignIn />

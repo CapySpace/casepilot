@@ -33,3 +33,17 @@ export function isPublicPath(pathname: string): boolean {
 
   return PUBLIC_PATH_SET.has(normalised);
 }
+
+/**
+ * Whether this request still carries the provider's session cookie.
+ *
+ * Used to tell two situations apart that look identical at the point of redirecting: a visitor who
+ * simply is not signed in, and a User whose session has stopped working. Only the second is owed
+ * an explanation — telling the first that their session expired would be a lie.
+ *
+ * Signing out removes the cookie outright rather than blanking it, verified against the running
+ * stack, so somebody who has just signed out is correctly read as the first case.
+ */
+export function carriesAuthCookie(cookies: readonly { name: string }[]): boolean {
+  return cookies.some(({ name }) => /^sb-.+-auth-token(\.\d+)?$/.test(name));
+}

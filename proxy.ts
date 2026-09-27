@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 
-import { isPublicPath } from "@/lib/auth/routes";
+import { carriesAuthCookie, isPublicPath } from "@/lib/auth/routes";
 import { createProxyClient } from "@/lib/supabase/proxy";
 
 /**
@@ -27,7 +27,9 @@ export async function proxy(request: NextRequest) {
   if (!signedIn && !isPublicPath(request.nextUrl.pathname)) {
     const signIn = request.nextUrl.clone();
     signIn.pathname = "/sign-in";
-    signIn.search = "";
+    // A session that stopped working gets an explanation; simply arriving signed out does not,
+    // because there is nothing to explain. The cookie is what tells the two apart.
+    signIn.search = carriesAuthCookie(request.cookies.getAll()) ? "?error=session-expired" : "";
     return respond(signIn);
   }
 
