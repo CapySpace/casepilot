@@ -1,16 +1,14 @@
 "use client";
 
-import { ArrowRight, Check, Mail, User } from "lucide-react";
+import { ArrowRight, Mail, User } from "lucide-react";
 import Link from "next/link";
 import { useActionState, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { PASSWORD_RULE } from "@/lib/auth/messages";
-import { isPasswordValid } from "@/lib/auth/validation";
 
-import { FormAlert, PasswordField, TextField } from "../_components/fields";
+import { FormAlert, PasswordField, PasswordRuleHint, TextField } from "../_components/fields";
 import { signUp, type SignUpState } from "./actions";
 
 const initialState: SignUpState = {
@@ -22,9 +20,6 @@ const initialState: SignUpState = {
 export function SignUpForm() {
   const [state, formAction, pending] = useActionState(signUp, initialState);
   const [password, setPassword] = useState("");
-
-  // Live, in the browser, with no round trip. The server runs the same rules again on submit.
-  const passwordMeetsRule = isPasswordValid(password);
 
   return (
     /*
@@ -68,29 +63,7 @@ export function SignUpForm() {
         onChange={(event) => setPassword(event.target.value)}
         error={state.errors.password}
         aria-describedby="password-rule"
-        hint={
-          /*
-            The rule is stated before anything is submitted, and then answers as they type. It is
-            one string shared with the server and with Supabase's own policy, so the rule a User is
-            shown cannot drift from the rule that is enforced.
-          */
-          <p
-            id="password-rule"
-            aria-live="polite"
-            className={`flex items-center gap-1.5 text-body-sm ${
-              passwordMeetsRule ? "text-foreground" : "text-muted-foreground"
-            }`}
-          >
-            {passwordMeetsRule ? (
-              <>
-                <Check className="size-3.5" aria-hidden="true" />
-                Password meets the requirements
-              </>
-            ) : (
-              PASSWORD_RULE
-            )}
-          </p>
-        }
+        hint={<PasswordRuleHint password={password} id="password-rule" />}
       />
 
       <div className="flex flex-col gap-2xs">

@@ -19,16 +19,16 @@ password they have not used before and cannot verify against memory.
 
 **Status:** ready-for-agent
 
-- [ ] A User can request a reset link using only their email address
-- [ ] The same confirmation message appears whether or not the address is registered
-- [ ] The reset link arrives by email, so only someone with inbox access can change the password
-- [ ] Following the link takes the User straight to a form for choosing a new password
-- [ ] The new-password form applies the same rule and the same live feedback as registration
-- [ ] The new password must be confirmed, so a typo cannot lock the User out
-- [ ] An invalid reset link is rejected with a plain-language explanation
-- [ ] An expired reset link is rejected with a plain-language explanation
-- [ ] A used or tampered reset link cannot be replayed by anyone who intercepts the email
-- [ ] After resetting, the User can immediately sign in with the new password
-- [ ] The old password no longer works
-- [ ] There is a route back to sign-in from the request form, so recovery is not a dead end
-- [ ] Browser tests cover the full recovery journey plus the invalid and expired link cases
+- [x] A User can request a reset link using only their email address
+- [x] The same confirmation message appears whether or not the address is registered
+- [x] The reset link arrives by email, so only someone with inbox access can change the password
+- [x] Following the link takes the User straight to a form for choosing a new password
+- [x] The new-password form applies the same rule and the same live feedback as registration
+- [x] The new password must be confirmed, so a typo cannot lock the User out
+- [x] An invalid reset link is rejected with a plain-language explanation
+- [x] An expired reset link is rejected with a plain-language explanation
+- [x] A used or tampered reset link cannot be replayed by anyone who intercepts the email
+- [x] After resetting, the User can immediately sign in with the new password
+- [x] The old password no longer works
+- [x] There is a route back to sign-in from the request form, so recovery is not a dead end
+- [x] Browser tests cover the full recovery journey plus the invalid and expired link cases

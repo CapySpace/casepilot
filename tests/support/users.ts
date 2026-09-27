@@ -214,3 +214,31 @@ export async function latestEmailTo(address: string): Promise<string> {
   const { HTML } = (await message.json()) as { HTML: string };
   return HTML;
 }
+
+/**
+ * A recovery token minted straight through the administrative interface.
+ *
+ * The same one-time token the reset email would have carried. One test in this suite still goes
+ * through the mail catcher, to prove the link really does arrive by email.
+ */
+export async function mintRecoveryToken(email: string): Promise<string> {
+  const response = await fetch(
+    `${requiredEnv("NEXT_PUBLIC_SUPABASE_URL")}/auth/v1/admin/generate_link`,
+    {
+      method: "POST",
+      headers: {
+        apikey: requiredEnv("SUPABASE_SECRET_KEY"),
+        Authorization: `Bearer ${requiredEnv("SUPABASE_SECRET_KEY")}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ type: "recovery", email }),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(`Could not mint a recovery link: ${response.status} ${response.statusText}`);
+  }
+
+  const { hashed_token: tokenHash } = (await response.json()) as { hashed_token: string };
+  return tokenHash;
+}

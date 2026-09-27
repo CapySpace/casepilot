@@ -77,3 +77,34 @@ export function validateRegistration(input: RegistrationInput): RegistrationErro
 
   return errors;
 }
+
+export type NewPasswordInput = {
+  password: string;
+  confirmation: string;
+};
+
+export type NewPasswordErrors = Partial<Record<"password" | "confirmation", string>>;
+
+/**
+ * The rules for choosing a replacement password.
+ *
+ * The same strength rule as registration, plus a confirmation. Registration deliberately has no
+ * confirm field — the visibility toggle does that job — but here the User is typing a password they
+ * have never used, so there is nothing to check it against from memory. A typo they cannot see
+ * would lock them out of the very account they are recovering.
+ */
+export function validateNewPassword(input: NewPasswordInput): NewPasswordErrors {
+  const errors: NewPasswordErrors = {};
+
+  if (!isPasswordValid(input.password)) {
+    errors.password = authMessages.passwordTooWeak;
+  }
+
+  // Compared exactly. Trimming would quietly accept a trailing space here and then reject it at
+  // sign-in, which is the lock-out this field exists to prevent.
+  if (input.confirmation !== input.password) {
+    errors.confirmation = authMessages.passwordsDoNotMatch;
+  }
+
+  return errors;
+}

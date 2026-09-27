@@ -24,11 +24,29 @@ export type SignedInUser = {
  * possible. `cache` keeps it to one call per render pass however many components ask.
  */
 export const verifySession = cache(async (): Promise<SignedInUser> => {
+  const user = await currentUser();
+  if (!user) redirect("/sign-in");
+
+  return user;
+});
+
+/**
+ * Who is signed in, or null.
+ *
+ * The same authoritative `getUser()` call as `verifySession`, without the redirect, for the one
+ * place that needs to ask rather than insist: choosing a replacement password. That page is public,
+ * because somebody arriving on it has only just followed a link from their email — and if the link
+ * did not work, the right answer is an explanation and a way to request another, not a bounce to a
+ * sign-in form they cannot use.
+ *
+ * Prefer `verifySession` everywhere else. Returning null invites forgetting to handle it.
+ */
+export const currentUser = cache(async (): Promise<SignedInUser | null> => {
   const supabase = await createClient();
   const { data, error } = await supabase.auth.getUser();
 
   if (error || !data.user) {
-    redirect("/sign-in");
+    return null;
   }
 
   // Supabase types email as optional because other identity providers need not supply one. Email

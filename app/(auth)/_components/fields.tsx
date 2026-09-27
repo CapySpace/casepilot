@@ -1,11 +1,13 @@
 "use client";
 
-import { Eye, EyeOff, Lock, TriangleAlert, type LucideIcon } from "lucide-react";
+import { Check, Eye, EyeOff, Lock, TriangleAlert, type LucideIcon } from "lucide-react";
 import { useId, useState, type ComponentProps, type ReactNode } from "react";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PASSWORD_RULE } from "@/lib/auth/messages";
+import { isPasswordValid } from "@/lib/auth/validation";
 
 /**
  * The parts every authentication form is built from.
@@ -135,5 +137,35 @@ export function PasswordField({
       {hint}
       <FieldError id={errorId} message={error} />
     </div>
+  );
+}
+
+/**
+ * The password rule, stated before anything is submitted and answering as the User types.
+ *
+ * Shared by registration and by choosing a replacement, so "the same rule and the same live
+ * feedback" is a fact about the code rather than two things that happen to agree today. The string
+ * comes from the catalogue, which is also what the server and Supabase's own policy enforce.
+ */
+export function PasswordRuleHint({ password, id }: { password: string; id: string }) {
+  const met = isPasswordValid(password);
+
+  return (
+    <p
+      id={id}
+      aria-live="polite"
+      className={`flex items-center gap-1.5 text-body-sm ${
+        met ? "text-foreground" : "text-muted-foreground"
+      }`}
+    >
+      {met ? (
+        <>
+          <Check className="size-3.5" aria-hidden="true" />
+          Password meets the requirements
+        </>
+      ) : (
+        PASSWORD_RULE
+      )}
+    </p>
   );
 }

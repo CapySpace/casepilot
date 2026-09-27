@@ -51,6 +51,7 @@ export const authMessages = {
   emailMalformed: "That does not look like an email address.",
   passwordTooWeak: `Your password must be ${PASSWORD_RULE.toLowerCase()}.`,
   termsRequired: "Agree to the Terms of Service and Privacy Policy to continue.",
+  passwordsDoNotMatch: "Those two passwords are not the same. Type the new one again.",
 
   // Email links. The provider cannot tell these apart — a consumed token, a tampered one and a
   // genuinely expired one all come back `otp_expired`, verified against the running stack — so the
