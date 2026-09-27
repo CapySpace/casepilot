@@ -7,8 +7,9 @@ import { useActionState } from "react";
 import { FormAlert, TextareaField, TextField } from "@/components/form/fields";
 import { Button } from "@/components/ui/button";
 import { MAXIMUM_DESCRIPTION_LENGTH, MAXIMUM_NAME_LENGTH } from "@/lib/projects/limits";
+import { validateProjectDetails } from "@/lib/projects/validation";
 
-import { useProjectDetails } from "../_components/use-project-details";
+import { useMirroredFields } from "../_components/use-mirrored-fields";
 import { createProject, type NewProjectState } from "./actions";
 
 const initialState: NewProjectState = {
@@ -22,7 +23,7 @@ export function NewProjectForm() {
 
   // The same rules the action runs, mirrored here so a refusal costs no round trip. The action runs
   // them regardless, because it is reachable without a form.
-  const details = useProjectDetails(state.values, state.errors);
+  const details = useMirroredFields(state.values, validateProjectDetails, state.errors);
 
   return (
     /*

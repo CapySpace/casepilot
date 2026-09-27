@@ -34,8 +34,37 @@ export const projectMessages = {
 
   couldNotUpdate: "Something went wrong saving the project. Nothing has been changed.",
 
+  couldNotInvite: "Something went wrong creating the invitation. Nothing has been created.",
+
+  couldNotCancel: "Something went wrong cancelling the invitation. It is still open.",
+
+  /**
+   * The duplicate refusal, which names the address on purpose: an Owner who has forgotten whether they
+   * invited somebody is told, and the answer is the same whether they typed it in a different case.
+   */
+  alreadyInvited(email: string) {
+    return `${email} already has an invitation waiting. Cancel it first if you want a new one.`;
+  },
+
+  /** Naming them too, because the Owner's next question is "since when?" and the list answers it. */
+  alreadyAMember(email: string) {
+    return `${email} is already a member of this project.`;
+  },
+
+  /** Said once, after an Invitation is created. The Owner sends the link; CasePilot does not. */
+  invitationIssued(email: string) {
+    return `Invitation created for ${email}. Send them the link below — CasePilot does not email it.`;
+  },
+
+  invitationCancelled: "Invitation cancelled. Its link no longer works.",
+
   /** Said after a save that worked, because a form that goes quiet leaves the User guessing. */
   projectUpdated: "Project updated.",
+
+  /** The invite form's own two refusals. Its field asks for a colleague, not for "your" address. */
+  inviteeRequired: "Enter the email address of the person you want to invite.",
+
+  inviteeMalformed: "That does not look like an email address.",
 
   /**
    * Shown to a Member on the settings page, where an Owner sees the form.

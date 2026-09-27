@@ -1,3 +1,5 @@
+import { isEmailShaped } from "@/lib/email";
+
 import { authMessages } from "./messages";
 
 const MINIMUM_PASSWORD_LENGTH = 8;
@@ -25,15 +27,6 @@ export function checkPassword(password: string): PasswordChecks {
 
 export function isPasswordValid(password: string): boolean {
   return Object.values(checkPassword(password)).every(Boolean);
-}
-
-/**
- * Deliberately unambitious. A regular expression cannot decide whether an address is real — only
- * the verification email can, and that is the whole point of sending one. This rejects what is
- * obviously not an address and leaves the rest to the provider.
- */
-function isEmailShaped(email: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
 export type RegistrationInput = {

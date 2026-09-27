@@ -236,3 +236,72 @@ export const listProjectPeople = cache(async (projectId: string): Promise<Projec
     joinedAt: person.joined_at,
   }));
 });
+
+/** An Invitation as its Owner sees it on the Members page. */
+export type PendingInvitation = {
+  id: string;
+  email: string;
+  invitedBy: string;
+  expiresAt: string;
+  expired: boolean;
+};
+
+type InvitationRow = {
+  id: string;
+  email: string;
+  invited_by: string;
+  expires_at: string;
+};
+
+/**
+ * The Invitations still waiting on a Project, for its Owner.
+ *
+ * Only pending rows. An accepted Invitation is a person in the Members list above, and a cancelled one
+ * is a decision already taken — neither is outstanding, which is the only thing this list is about.
+ *
+ * Expiry is computed here from `expires_at`, because that is where it lives: no row ever says
+ * `expired`, so a stale Invitation keeps its `pending` status and is *shown* as expired. The database
+ * has nothing to sweep and nothing to disagree with.
+ *
+ * Nothing is filtered by Project ownership here — row-level security allows only an Owner to select
+ * these rows at all, so a Member's read returns nothing rather than being hidden by the page.
+ */
+export const listPendingInvitations = cache(
+  async (projectId: string): Promise<PendingInvitation[]> => {
+    // Stated rather than inherited. It was reached only through the `listProjectPeople` call below,
+    // which is incidental: this module's contract is that every read establishes identity first, and a
+    // contract kept by accident is one a later edit breaks silently.
+    await verifySession();
+
+    const supabase = await createClient();
+
+    const [{ data, error }, people] = await Promise.all([
+      supabase
+        .from("project_invitations")
+        .select("id, email, invited_by, expires_at")
+        .eq("project_id", projectId)
+        .eq("status", "pending")
+        .order("created_at", { ascending: false })
+        .returns<InvitationRow[]>(),
+      listProjectPeople(projectId),
+    ]);
+
+    if (error) {
+      throw new Error(`Could not read the Invitations of Project ${projectId}: ${error.message}`);
+    }
+
+    // Who invited them, by name. The inviter is a member of the Project, so they are in the list the
+    // page already has — and `profiles` is readable only by its own User, so a join would come back
+    // empty anyway.
+    const names = new Map(people.map((person) => [person.userId, person.fullName]));
+    const now = Date.now();
+
+    return (data ?? []).map((invitation) => ({
+      id: invitation.id,
+      email: invitation.email,
+      invitedBy: names.get(invitation.invited_by) ?? "a former member",
+      expiresAt: invitation.expires_at,
+      expired: new Date(invitation.expires_at).getTime() <= now,
+    }));
+  },
+);

@@ -1,3 +1,5 @@
+import { isEmailShaped } from "@/lib/email";
+
 import { MAXIMUM_DESCRIPTION_LENGTH, MAXIMUM_NAME_LENGTH } from "./limits";
 import { projectMessages } from "./messages";
 
@@ -37,4 +39,26 @@ export function validateProjectDetails({ name, description }: ProjectDetails): P
   }
 
   return errors;
+}
+
+export type InvitationInput = {
+  email: string;
+};
+
+export type InvitationErrors = Partial<Record<"email", string>>;
+
+/**
+ * The rules for inviting somebody: an address, and one that looks like one.
+ *
+ * Whether they are *already* invited or already a Member is not asked here. Those are facts about the
+ * Project rather than about the input, only the database knows them, and a pure function that pretended
+ * to would be guessing.
+ */
+export function validateInvitation({ email }: InvitationInput): InvitationErrors {
+  const trimmed = email.trim();
+
+  if (trimmed === "") return { email: projectMessages.inviteeRequired };
+  if (!isEmailShaped(trimmed)) return { email: projectMessages.inviteeMalformed };
+
+  return {};
 }

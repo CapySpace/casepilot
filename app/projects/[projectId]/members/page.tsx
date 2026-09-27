@@ -1,17 +1,27 @@
 import type { ReactNode } from "react";
 
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDay } from "@/lib/dates";
-import { listProjectPeople, requireProjectMembership } from "@/lib/projects/dal";
+import {
+  listPendingInvitations,
+  listProjectPeople,
+  requireProjectMembership,
+} from "@/lib/projects/dal";
 
 import { RoleLabel } from "../../_components/role-label";
+import { InviteForm } from "./_components/invite-form";
+import { PendingInvitations } from "./_components/pending-invitations";
 
 /**
  * Who is in this Project.
  *
- * Every Member sees it, not only the Owner: knowing who else is testing is part of working together,
- * and this is the page somebody opens to find out who to ask. The Owner's own controls — inviting,
- * cancelling an Invitation, removing somebody — arrive with tickets 05 and 07.
+ * Every Member sees the list, not only the Owner: knowing who else is testing is part of working
+ * together, and this is the page somebody opens to find out who to ask.
+ *
+ * Inviting, and the Invitations still waiting, belong to the Owner alone — and are *absent* for a
+ * Member rather than disabled. Row-level security says the same thing underneath: a Member's read of
+ * `project_invitations` returns nothing at all, so there is no list to hide. Removing somebody arrives
+ * with ticket 07.
  *
  * A table, because this is tabular: several people and four facts about each, read down as much as
  * across. DESIGN.md §4's treatment, less one part of it: porcelain header, slate column labels,
@@ -31,6 +41,10 @@ export default async function ProjectMembersPage({ params }: PageProps<"/project
   // already resolved this and `cache` dedupes it within the request.
   const project = await requireProjectMembership(projectId);
   const people = await listProjectPeople(projectId);
+  // Asked for everybody, answered for the Owner. Row-level security allows only an Owner to select these
+  // rows, so a Member's read comes back empty on its own — and the page not deciding is the point: "a
+  // page that filters is a page that can forget to".
+  const invitations = await listPendingInvitations(projectId);
 
   return (
     <>
@@ -96,6 +110,35 @@ export default async function ProjectMembersPage({ params }: PageProps<"/project
           </tbody>
         </table>
       </Card>
+
+      {project.role === "owner" && (
+        <>
+          <Card className="max-w-reading">
+            <CardHeader>
+              <CardTitle>Invite a colleague</CardTitle>
+              <CardDescription>
+                Creating an invitation gives you a single-use link. CasePilot does not send it —
+                forward it however you normally reach them.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <InviteForm projectId={project.id} />
+            </CardContent>
+          </Card>
+
+          <Card className="max-w-reading">
+            <CardHeader>
+              <CardTitle>Waiting to accept</CardTitle>
+              <CardDescription>
+                Invitations expire after seven days. Cancelling one stops its link working.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <PendingInvitations projectId={project.id} invitations={invitations} />
+            </CardContent>
+          </Card>
+        </>
+      )}
     </>
   );
 }

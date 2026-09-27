@@ -7,9 +7,9 @@ import { FormAlert, TextareaField, TextField } from "@/components/form/fields";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { MAXIMUM_DESCRIPTION_LENGTH, MAXIMUM_NAME_LENGTH } from "@/lib/projects/limits";
-import type { ProjectDetails } from "@/lib/projects/validation";
+import { validateProjectDetails, type ProjectDetails } from "@/lib/projects/validation";
 
-import { useProjectDetails } from "../../_components/use-project-details";
+import { useMirroredFields } from "../../_components/use-mirrored-fields";
 import { updateProject, type ProjectSettingsState } from "./actions";
 
 export function ProjectSettingsForm({
@@ -31,7 +31,7 @@ export function ProjectSettingsForm({
     values: saved,
   } satisfies ProjectSettingsState);
 
-  const details = useProjectDetails(state.values, state.errors);
+  const details = useMirroredFields(state.values, validateProjectDetails, state.errors);
 
   return (
     <form
