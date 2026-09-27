@@ -29,13 +29,18 @@ dashboard to click through. `.env.local` holds no per-developer secrets either: 
 ## Running the tests
 
 ```bash
-npm test          # both suites
-npm run test:unit # Vitest
-npm run test:e2e  # Playwright
+npm test          # all three suites
+npm run test:unit # Vitest: pure functions
+npm run test:rls  # Vitest: row-level security, over the publishable key as real Users
+npm run test:e2e  # Playwright: the browser
 ```
 
-Both need a running stack (`supabase start`). The browser suite starts the dev server itself and
-reuses one you already have running.
+`test:rls` and `test:e2e` need a running stack (`supabase start`); the unit suite is pure functions and
+needs nothing. The browser suite starts the dev server itself and reuses one you already have running.
+
+The RLS suite is the third seam, and it exists because "direct API access cannot bypass membership"
+cannot be proven from a browser: it talks to PostgREST as two real signed-in Users and asserts what
+the *database* refuses. It never uses the secret key — that would bypass the policies it is checking.
 
 The provider is **never mocked**. The value of these tests is almost entirely in exercising
 Supabase's real behaviour — a mock would cheerfully confirm behaviour it does not have. So a failing

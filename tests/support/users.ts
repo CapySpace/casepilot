@@ -14,7 +14,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
  * catcher, and that one belongs to ticket 05.
  */
 
-function requiredEnv(name: string): string {
+export function requiredEnv(name: string): string {
   const value = process.env[name];
   if (!value) {
     throw new Error(

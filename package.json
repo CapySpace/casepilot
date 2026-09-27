@@ -8,8 +8,9 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test": "npm run test:unit && npm run test:e2e",
+    "test": "npm run test:unit && npm run test:rls && npm run test:e2e",
     "test:unit": "vitest run",
+    "test:rls": "vitest run --config vitest.rls.config.mts",
     "test:e2e": "playwright test",
     "verify:renewal": "bash scripts/verify-silent-renewal.sh"
   },
