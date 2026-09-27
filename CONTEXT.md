@@ -7,12 +7,30 @@ what happened — with a history that can be audited rather than overwritten.
 
 **User**:
 A person who holds credentials and signs in to CasePilot.
-_Avoid_: Account, member, tester
+_Avoid_: Account, tester
 
 **Project**:
 A tenant boundary that owns Cases, Builds and Defects, and to which Users are invited. A User may
-belong to several; exactly one is active at a time, chosen from the switcher.
+belong to several; work happens in one at a time, and which one is always evident from where the
+User is rather than remembered on their behalf.
 _Avoid_: Workspace, organisation, team, account
+
+**Membership**:
+The record that a particular User belongs to a particular Project, carrying their Role and when
+they joined. A User has at most one Membership per Project. It is what makes a Project's contents
+visible to them, and removing it is what ends that.
+_Avoid_: Access, permission, seat
+
+**Role**:
+What a Membership entitles its User to do in that Project: **Owner** or **Member**. An Owner can
+change the Project and decide who else belongs to it; a Member can see and work in it, and can
+leave. Every Project has exactly one Owner, from the moment it is created.
+
+**Invitation**:
+An offer, addressed to an email address, to take up a Membership of a Project. It is issued by that
+Project's Owner, expires, and is spent the moment it is accepted. Until then the invited person is
+not part of the Project in any way.
+_Avoid_: Request, join link, share
 
 **Case**:
 A single test case: one thing to verify, identified as `TC-nnn`, belonging to a Project.
@@ -22,6 +40,11 @@ _Avoid_: Legal case, matter, docket, test scenario, script
 
 **Account** is deliberately absent. It was doing three jobs at once — the person, the credentials,
 and the tenant — which are now **User** and **Project**.
+
+**Member** is a Role, never a person. "A Member" and "the Members" are correct when naming what a
+Role entitles someone to, or the people holding a Membership of one Project; a person in general is
+a **User**. Writing "a member signed in" is the drift this note exists to stop, because it quietly
+implies belonging where none has been established.
 
 **Case** is the project's most dangerous word. The Stitch design system's prose drifted into
 describing CasePilot as legal-tech serving "legal-tech specialists" with "case docket numbers",

@@ -197,7 +197,7 @@ beneath hand-rolled forms is materially worse than adopting one up front.
 
 **Landing destination.** Phase 1 ends at a deliberate placeholder: a single protected page showing
 who is signed in and offering sign-out, explicitly marked as temporary. A Project is the tenant
-boundary that owns Cases, and Projects arrive in Phase 2, so there is genuinely nothing else to show
+boundary that owns Cases, and Projects arrive in the next phase, so there is genuinely nothing else to show
 yet.
 
 **Local environment.** Development and tests run against the local Supabase stack. Its configuration
@@ -262,7 +262,7 @@ phase will copy, which is a reason to get the seam discipline right now rather t
 ## Out of Scope
 
 - Projects, Project membership and invitations. A Project is the tenant boundary that owns Cases;
-  creating and joining one is Phase 2. Phase 1 produces Users and nothing else.
+  creating and joining one is the next phase. Phase 1 produces Users and nothing else.
 - Any real authenticated interface. The landing page is an acknowledged placeholder.
 - The hosted Supabase project and anything deploy-related: production URLs, redirect allow-lists for
   a deployed domain, and CI secrets. There is no deploy target yet, and a hosted project's URL
@@ -301,7 +301,7 @@ the stack configuration and both email templates — belongs in version control.
 building these forms will not automatically read it. That should be fixed before implementation
 starts, or the forms will be built without the tokens they are supposed to use.
 
-**The Phase 1 / Phase 2 seam is thin by design.** At the end of this work CasePilot is an
+**The seam at the end of this phase is thin by design.** At the end of this work CasePilot is an
 application a User can register for, verify, sign into and sign out of — and in which there is
 nothing to do. That is the correct foundation, but it is worth knowing in advance that Phase 1 ships
 nothing demonstrable to a stakeholder.

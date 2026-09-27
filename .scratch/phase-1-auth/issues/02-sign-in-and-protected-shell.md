@@ -11,7 +11,7 @@ without the proxy, protected pages flash before redirecting; without the Data Ac
 route that forgets its own check is unguarded.
 
 The authenticated page is an acknowledged placeholder. A Project is the tenant boundary that owns
-Cases, and Projects arrive in Phase 2, so there is genuinely nothing else to show yet. Mark it as
+Cases, and Projects arrive in the next phase, so there is genuinely nothing else to show yet. Mark it as
 temporary in the code.
 
 **Blocked by:** 01 (Project foundations).
