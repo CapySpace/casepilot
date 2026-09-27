@@ -122,7 +122,10 @@ export default async function ProjectMembersPage({ params }: PageProps<"/project
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <InviteForm projectId={project.id} />
+              <InviteForm
+                projectId={project.id}
+                waitingFor={invitations.map((invitation) => invitation.email)}
+              />
             </CardContent>
           </Card>
 

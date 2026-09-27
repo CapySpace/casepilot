@@ -24,6 +24,14 @@ export type InviteState = {
    * database holds only its hash — so there is nothing to show again later, which is the point.
    */
   invitationPath: string | null;
+  /**
+   * Who the link above was issued to.
+   *
+   * The form compares it against the Invitations still waiting: cancelling one revalidates the page but
+   * cannot reach into this state, so without this the Owner would be left looking at "Invitation created
+   * for X" and a live-looking link directly beneath copy explaining that cancelling stops it working.
+   */
+  issuedTo: string | null;
   /** Echoed back so a rejected attempt does not cost the Owner what they typed. */
   email: string;
 };
@@ -43,7 +51,14 @@ export async function inviteToProject(
   const email = String(formData.get("email") ?? "")
     .trim()
     .toLowerCase();
-  const nothingYet = { errors: {}, message: null, notice: null, invitationPath: null, email };
+  const nothingYet = {
+    errors: {},
+    message: null,
+    notice: null,
+    invitationPath: null,
+    issuedTo: null,
+    email,
+  };
 
   const errors = validateInvitation({ email });
   if (Object.keys(errors).length > 0) {
@@ -106,6 +121,7 @@ export async function inviteToProject(
     message: null,
     notice: projectMessages.invitationIssued(email),
     invitationPath: `/invitations/${token}`,
+    issuedTo: email,
     // Cleared: the address has been invited, and leaving it in the box invites inviting them twice.
     email: "",
   };

@@ -31,6 +31,7 @@ alongside the policies it already exercises.
 - [ ] After leaving, the Project's URL returns the same 404 a non-member gets
 - [ ] An Owner sees no Leave control, and the database refuses removal of the last `owner` Membership even when asked directly
 - [ ] An Owner can remove a Member from the Members list, after confirming in a dialog
+- [ ] Cancelling an Invitation confirms in the same dialog — ticket 05 built the control and deferred its confirmation to this ticket, which is where the component arrives
 - [ ] A removed Member loses access immediately: the Project leaves their list and its URL 404s
 - [ ] A Member cannot remove anybody, refused by the database as well as absent from the interface
 - [ ] A removed Member can be invited again and accept normally

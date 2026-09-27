@@ -58,6 +58,15 @@ export const projectMessages = {
 
   invitationCancelled: "Invitation cancelled. Its link no longer works.",
 
+  /**
+   * Who issued an Invitation, when that person is no longer in the Project.
+   *
+   * Unreachable today — only an Owner can invite, and an Owner cannot leave in this phase — and here so
+   * that the answer is a sentence somebody wrote rather than whatever the code falls back to on the day
+   * ownership can move. Not "a former member": `CONTEXT.md` is firm that Member is a Role, never a person.
+   */
+  inviterNoLongerHere: "someone who has since left the project",
+
   /** Said after a save that worked, because a form that goes quiet leaves the User guessing. */
   projectUpdated: "Project updated.",
 

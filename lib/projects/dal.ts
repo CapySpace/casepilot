@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { cache } from "react";
 
 import { verifySession } from "@/lib/auth/dal";
+import { projectMessages } from "@/lib/projects/messages";
 import { createClient } from "@/lib/supabase/server";
 
 /**
@@ -299,8 +300,13 @@ export const listPendingInvitations = cache(
     return (data ?? []).map((invitation) => ({
       id: invitation.id,
       email: invitation.email,
-      invitedBy: names.get(invitation.invited_by) ?? "a former member",
+      invitedBy: names.get(invitation.invited_by) ?? projectMessages.inviterNoLongerHere,
       expiresAt: invitation.expires_at,
+      // Judged by this server's clock, while `accept_invitation` judges by the database's. Under skew the
+      // two can disagree for as long as the skew lasts — a link shown as expired that the database would
+      // still honour, or the reverse. The database is the authority: it decides when a link is actually
+      // spent, and this is a label. Closing the gap would mean a round trip per row to ask Postgres what
+      // time it is, which is a worse trade than a label that can be a second stale.
       expired: new Date(invitation.expires_at).getTime() <= now,
     }));
   },

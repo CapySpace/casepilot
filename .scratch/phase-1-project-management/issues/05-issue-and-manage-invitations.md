@@ -106,3 +106,29 @@ own — registration says "your work email", inviting says "the person you want 
   row-level security returns nothing to them anyway, and the DAL's own warning is that a page which
   filters is a page that can forget to. The render is still gated: absent for a Member, not disabled.
 - **`tabular-nums` on the expiry date**, as DESIGN.md §3 asks of every timestamp.
+
+**What the spec review changed.** Two of its findings were already fixed by the standards pass (the
+swallowed `project_people` error, and "Nothing has been sent"). Three were new:
+
+- **A cancelled link was still being offered as the one to send.** Cancelling revalidates the page but
+  cannot reach into the invite form's action state, so the Owner was left looking at "Invitation created
+  for X" and a live-looking link — directly beneath a card explaining that cancelling stops a link working.
+  The action now says who the link was for, and the panel lasts exactly as long as that Invitation is still
+  among the ones waiting. A test asserts the panel goes.
+- **The inviter fallback called a person a Member** — "a former member" — which `CONTEXT.md` forbids, and
+  said it inline where every other user-facing string comes from the catalogue. It is
+  `projectMessages.inviterNoLongerHere` now, and unreachable until ownership can move.
+- **Expiry is judged by two clocks**, this server's for the label and the database's for the decision.
+  Under skew they can disagree for as long as the skew lasts. Recorded in the code rather than closed: the
+  database is the authority on when a link is spent, this is a label, and asking Postgres the time once per
+  row is a worse trade than a label that can be a second stale.
+- **One criterion was thinly covered**: no test issued an invitation to an address typed in capitals. One
+  does now, and asserts the list shows it lower-cased — the spelling the unique index depends on.
+- **The deferred cancel confirmation now lands somewhere.** Ticket 07 has a checkbox for it, rather than
+  this ticket's Comments being the only record that it was put off.
+
+**And one test that was asserting nothing.** The new uppercase test ended with
+`expect(page.getByText("Peter@Example.COM")).toHaveCount(0)`, which failed against a page that had done
+exactly the right thing: `getByText` with a *string* matches case-insensitively, so it found the
+lower-cased text twice. The obvious spelling of that assertion would have passed whatever the case — the
+one thing it exists to check. It is a regex now, which Playwright matches case-sensitively.

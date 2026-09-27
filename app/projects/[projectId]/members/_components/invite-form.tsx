@@ -17,6 +17,7 @@ const initialState: InviteState = {
   message: null,
   notice: null,
   invitationPath: null,
+  issuedTo: null,
   email: "",
 };
 
@@ -28,14 +29,26 @@ const initialState: InviteState = {
  * writing to state from an effect — and keying on the token rather than on the wording of a message means
  * the reset cannot quietly stop working because a sentence was reworded.
  */
-export function InviteForm({ projectId }: { projectId: string }) {
+export function InviteForm({
+  projectId,
+  waitingFor,
+}: {
+  projectId: string;
+  /** The addresses whose Invitations are still outstanding, from the list beside this form. */
+  waitingFor: string[];
+}) {
   const [state, formAction, pending] = useActionState(inviteToProject, initialState);
+
+  // A link that has been cancelled is no longer the link to send, and saying so is not this form's to
+  // know: cancelling happens in another component and revalidates the page, which cannot reach into this
+  // state. So the notice lasts exactly as long as the Invitation it describes.
+  const stillWaiting = state.issuedTo !== null && waitingFor.includes(state.issuedTo);
 
   return (
     <div className="flex flex-col gap-md">
       <FormAlert message={state.message} />
 
-      {state.notice && (
+      {state.notice && stillWaiting && (
         <Alert>
           <Mail aria-hidden="true" />
           <AlertDescription className="flex w-full flex-col gap-xs">

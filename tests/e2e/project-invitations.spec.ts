@@ -68,6 +68,24 @@ test("the link is an absolute URL the Owner can paste anywhere", async ({ page }
   expect(await linkFrom(page)).toMatch(LINK);
 });
 
+test("an address typed in capitals is stored and shown in lower case", async ({ page }) => {
+  const anna = await signedInUser();
+  const project = await createProject(anna, "Mobile Banking App");
+  await signInAndLand(page, anna);
+  await page.goto(`/projects/${project}/members`);
+
+  await invite(page, "Peter@Example.COM");
+  await page.getByRole("button", { name: "Create Invitation" }).click();
+
+  // One address, one spelling. The database refuses a row that is not lower-cased, and the unique index
+  // that keeps one live Invitation per address would otherwise treat two capitalisations as two people.
+  await expect(page.getByText(/Invitation created for peter@example\.com/)).toBeVisible();
+  await expect(page.getByRole("listitem").filter({ hasText: "peter@example.com" })).toHaveCount(1);
+  // A regex, because `getByText` with a *string* matches case-insensitively — so the obvious spelling of
+  // this assertion passes whatever the case, which is the one thing it exists to check.
+  await expect(page.getByText(/Peter@Example\.COM/)).toHaveCount(0);
+});
+
 test("the same address cannot be invited twice while one is waiting", async ({ page }) => {
   const anna = await signedInUser();
   const project = await createProject(anna, "Mobile Banking App");
@@ -136,6 +154,12 @@ test("cancelling an Invitation stops its link working", async ({ page }) => {
 
   await expect(page.getByText(/Invitation cancelled/)).toBeVisible();
   await expect(page.getByRole("listitem").filter({ hasText: peter.email })).toHaveCount(0);
+
+  // And the Owner is no longer being handed a dead link to send. The panel above outlives the action
+  // that produced it unless something says otherwise, which is exactly the trap: a live-looking link
+  // directly beneath copy explaining that cancelling stops it working.
+  await expect(page.getByText(/Invitation created for/)).toHaveCount(0);
+  await expect(page.getByText(LINK)).toHaveCount(0);
 
   // Ticket 06 builds the page that spends a link; what matters here is that this one no longer can.
   expect(await attemptAccept(peter, link)).toBe("cancelled");
