@@ -2,6 +2,7 @@ import { CalendarDays, Users, type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatDay } from "@/lib/dates";
 import { requireProjectMembership } from "@/lib/projects/dal";
 
 /**
@@ -30,17 +31,7 @@ export default async function ProjectOverviewPage({
           {project.memberCount} {project.memberCount === 1 ? "member" : "members"}
         </Fact>
         <Fact icon={CalendarDays} label="Started">
-          {/*
-            Formatted on the server, in one locale. A date formatted in the browser's locale would
-            differ from the one rendered here and React would report the mismatch — and a project's
-            start date is a fact, not a personalisation.
-          */}
-          Created{" "}
-          {new Intl.DateTimeFormat("en-GB", {
-            day: "numeric",
-            month: "long",
-            year: "numeric",
-          }).format(new Date(project.createdAt))}
+          Created {formatDay(project.createdAt)}
         </Fact>
       </dl>
 
@@ -54,7 +45,8 @@ export default async function ProjectOverviewPage({
         </CardHeader>
         <CardContent className="text-body-md text-muted-foreground">
           {/* Says what is coming, without telling anybody to press something that is not there. */}
-          The member list and invitations arrive with the next two tickets.
+          Inviting colleagues arrives with the next ticket; the people already here are on the members
+          page.
         </CardContent>
       </Card>
     </>

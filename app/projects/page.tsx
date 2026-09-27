@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { listMyProjects, type ProjectSummary } from "@/lib/projects/dal";
 
+import { RoleLabel } from "./_components/role-label";
+
 /**
  * Every Project the signed-in User belongs to, owned or joined, and nothing else.
  *
@@ -76,14 +78,7 @@ function ProjectRow({ project }: { project: ProjectSummary }) {
         )}
       </CardHeader>
       <CardContent className="flex flex-wrap items-center gap-md text-body-sm text-muted-foreground">
-        {/*
-          A Role is not a status, so it takes no status colour — and it is not a status *chip* either,
-          so it takes no pill: DESIGN.md §5 reserves full curvature for status chips and badges alone,
-          which is what makes state identifiable by silhouette. An 8px container says "label".
-        */}
-        <span className="rounded-lg bg-secondary px-2 py-0.5 text-label-sm uppercase text-secondary-foreground">
-          {project.role === "owner" ? "Owner" : "Member"}
-        </span>
+        <RoleLabel role={project.role} />
         <span className="flex items-center gap-2xs">
           <Users className="size-3.5" aria-hidden="true" />
           <span className="tabular-nums">

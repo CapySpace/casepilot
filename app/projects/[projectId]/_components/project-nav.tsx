@@ -1,6 +1,6 @@
 "use client";
 
-import { LayoutDashboard, Settings, type LucideIcon } from "lucide-react";
+import { LayoutDashboard, Settings, Users, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -14,8 +14,8 @@ import { Eyebrow } from "@/components/eyebrow";
  * rendering too, so the active item is already marked in the HTML rather than appearing once the
  * bundle loads.
  *
- * Members arrives in ticket 04 and Releases, Builds and Cases in the next phase. Nothing is listed
- * here before it exists: a navigation item that goes nowhere is worse than a short list.
+ * Releases, Builds and Cases arrive in the next phase. Nothing is listed here before it exists: a
+ * navigation item that goes nowhere is worse than a short list.
  */
 
 type NavItem = {
@@ -29,6 +29,7 @@ export function ProjectNav({ projectId }: { projectId: string }) {
 
   const items: NavItem[] = [
     { href: `/projects/${projectId}`, label: "Overview", icon: LayoutDashboard },
+    { href: `/projects/${projectId}/members`, label: "Members", icon: Users },
     { href: `/projects/${projectId}/settings`, label: "Settings", icon: Settings },
   ];
 

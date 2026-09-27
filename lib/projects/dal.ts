@@ -178,3 +178,61 @@ export const requireProjectOwnership = cache(async (projectId: string): Promise<
 
   return project;
 });
+
+/** One person in a Project, as the Members list shows them. */
+export type ProjectPerson = {
+  userId: string;
+  fullName: string;
+  email: string;
+  role: ProjectRole;
+  joinedAt: string;
+};
+
+type PersonRow = {
+  user_id: string;
+  full_name: string;
+  email: string;
+  role: ProjectRole;
+  joined_at: string;
+};
+
+/**
+ * Everybody in a Project: name, address, Role, and when they joined.
+ *
+ * Through `project_people` and nothing else. The two halves of a person live where a client cannot
+ * join them — `profiles` is readable only by its own User, and the email address is in `auth.users`,
+ * which no client may read at all — so that function is the only door, and its own first act is to
+ * check that the caller is a member. See ADR-0003 for why it is allowed to read what it reads, and why
+ * widening it would be a breach rather than a refactor.
+ *
+ * It returns the Owner first, then in joining order, because "who runs this" is the useful order for a
+ * list of people. The ordering is the database's, so every reader gets the same one.
+ */
+export const listProjectPeople = cache(async (projectId: string): Promise<ProjectPerson[]> => {
+  await verifySession();
+  const supabase = await createClient();
+
+  const { data, error } = await supabase.rpc("project_people", { p_project_id: projectId });
+
+  if (error) {
+    throw new Error(`Could not read the people in Project ${projectId}: ${error.message}`);
+  }
+
+  // Cast at the boundary, not laziness: `.returns<PersonRow[]>()` — which is how `listMyProjects`
+  // types its query — does not compile on `rpc()`. Measured against @supabase/supabase-js 2.117: the
+  // helper unions the row type with `{ Error: "Type mismatch: Cannot cast single object to array
+  // type…" }`, so `.map` does not exist on the result. Without generated database types the client
+  // cannot know a function returns a set.
+  //
+  // The shape below is the migration's `returns table (...)`, and the RLS suite is what holds the two
+  // together: it calls this function over the real API and asserts the columns.
+  const rows = (data ?? []) as PersonRow[];
+
+  return rows.map((person) => ({
+    userId: person.user_id,
+    fullName: person.full_name,
+    email: person.email,
+    role: person.role,
+    joinedAt: person.joined_at,
+  }));
+});
