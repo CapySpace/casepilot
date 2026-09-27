@@ -78,7 +78,7 @@ supabase db reset   # rebuild the local database from scratch
 | `supabase/`         | Local stack configuration and email templates                         |
 | `tests/unit/`       | Vitest — pure functions only                                          |
 | `tests/e2e/`        | Playwright — whole flows against the real stack                       |
-| `tests/support/`    | Seeding helpers. The only place the secret key is used                |
+| `tests/support/`    | Seeding and flow helpers. The only place the secret key is used       |
 | `CONTEXT.md`        | The glossary. Read before naming anything                             |
 | `DESIGN.md`         | The design system. Read before building any interface                 |
 | `docs/adr/`         | Architecture decisions, including why authentication is enforced twice |

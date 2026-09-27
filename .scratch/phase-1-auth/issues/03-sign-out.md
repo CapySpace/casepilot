@@ -10,9 +10,9 @@ merely hidden from the interface.
 
 **Status:** ready-for-agent
 
-- [ ] A signed-in User can sign out from the authenticated area
-- [ ] Signing out removes the session rather than only clearing the interface
-- [ ] After signing out the User is returned to the sign-in page
-- [ ] After signing out, the back button does not return the User to authenticated content
-- [ ] After signing out, opening a protected URL directly redirects to sign-in
-- [ ] Browser tests cover the full round trip: sign in, sign out, and confirm protected content is unreachable
+- [x] A signed-in User can sign out from the authenticated area
+- [x] Signing out removes the session rather than only clearing the interface
+- [x] After signing out the User is returned to the sign-in page
+- [x] After signing out, the back button does not return the User to authenticated content
+- [x] After signing out, opening a protected URL directly redirects to sign-in
+- [x] Browser tests cover the full round trip: sign in, sign out, and confirm protected content is unreachable
