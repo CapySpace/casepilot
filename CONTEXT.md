@@ -10,10 +10,21 @@ A person who holds credentials and signs in to CasePilot.
 _Avoid_: Account, tester
 
 **Project**:
-A tenant boundary that owns Cases, Builds and Defects, and to which Users are invited. A User may
+A tenant boundary that owns Releases and Defects, and to which Users are invited. A User may
 belong to several; work happens in one at a time, and which one is always evident from where the
 User is rather than remembered on their behalf.
 _Avoid_: Workspace, organisation, team, account
+
+**Release**:
+A named version or milestone of a Project's software — e.g. `1.0.0` — holding the Builds produced
+under it. Identified within its Project by its version, which is unique there but not globally.
+_Avoid_: Version (the field on a Release, not the entity itself)
+
+**Build**:
+A specific, testable build produced under a Release, identified by a build number — e.g. `100` — that
+is assigned externally (by CI) and recorded here, not minted by CasePilot. Unique within its Release,
+not within its Project: two Releases may each have a "Build 100". Test-execution work (Phase 3) attaches
+here.
 
 **Membership**:
 The record that a particular User belongs to a particular Project, carrying their Role and when
