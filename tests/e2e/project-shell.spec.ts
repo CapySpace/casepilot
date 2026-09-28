@@ -22,7 +22,7 @@ test("the overview names the Project and is honest about what is not here yet", 
   await expect(page.getByRole("heading", { level: 1, name: "Mobile Banking Application" })).toBeVisible();
   await expect(page.getByText("2 members")).toBeVisible();
   await expect(page.getByText(new RegExp(`Created \\d{1,2} \\w+ ${new Date().getFullYear()}`))).toBeVisible();
-  await expect(page.getByText(/Releases, builds and test cases/)).toBeVisible();
+  await expect(page.getByText(/Builds and test cases arrive next/)).toBeVisible();
 });
 
 test("the overview shows a description when there is one, and does not invent one when there is not", async ({

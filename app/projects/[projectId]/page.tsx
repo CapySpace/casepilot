@@ -8,8 +8,9 @@ import { requireProjectMembership } from "@/lib/projects/dal";
 /**
  * The Project overview: what this Project is, who is in it, and when it started.
  *
- * It says plainly that Releases, Builds and Cases are not here yet rather than drawing empty frames
- * for them. An empty frame promises something is coming today; a sentence is honest about the phase.
+ * It says plainly that Builds and test cases are not here yet rather than drawing empty frames for
+ * them. An empty frame promises something is coming today; a sentence is honest about the phase.
+ * Releases have arrived — see the sidebar — so they are no longer named among what is missing.
  */
 export default async function ProjectOverviewPage({
   params,
@@ -39,12 +40,11 @@ export default async function ProjectOverviewPage({
         <CardHeader>
           <CardTitle>Nothing to test here yet</CardTitle>
           <CardDescription>
-            Releases, builds and test cases arrive in the next phase. For now a project holds its
-            people.
+            Builds and test cases arrive next. For now a project holds its people and the releases
+            they are tracking.
           </CardDescription>
         </CardHeader>
         <CardContent className="text-body-md text-muted-foreground">
-          {/* Everything this sentence points at now exists, which is the phase being finished. */}
           Invite the colleagues who will be testing with you from the members page.
         </CardContent>
       </Card>
