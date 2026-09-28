@@ -46,7 +46,7 @@ export default async function ProjectMembersPage({ params }: PageProps<"/project
   // rows, so a Member's read comes back empty on its own — and the page not deciding is the point: "a
   // page that filters is a page that can forget to".
   const invitations = await listPendingInvitations(projectId);
-  const owner = project.role === "owner";
+  const viewerIsOwner = project.role === "owner";
 
   return (
     <>
@@ -81,7 +81,7 @@ export default async function ProjectMembersPage({ params }: PageProps<"/project
               {/* The label hides, not the cell: `sr-only` is absolutely positioned, so putting it on the
                   `th` would lift the header cell out of a row whose body cells stay put. The column holds
                   one control per row, each named for the person it acts on. */}
-              {owner && (
+              {viewerIsOwner && (
                 <HeaderCell>
                   <span className="sr-only">Actions</span>
                 </HeaderCell>
@@ -115,7 +115,7 @@ export default async function ProjectMembersPage({ params }: PageProps<"/project
                 >
                   {formatDay(person.joinedAt)}
                 </td>
-                {owner && (
+                {viewerIsOwner && (
                   <td className={`${CELL} align-top text-right`}>
                     {/* Not on their own row: an Owner cannot remove themselves, and the database refuses it
                         as well — see the policies in the leaving migration. */}
@@ -134,7 +134,7 @@ export default async function ProjectMembersPage({ params }: PageProps<"/project
         </table>
       </Card>
 
-      {owner && (
+      {viewerIsOwner && (
         <>
           <Card className="max-w-reading">
             <CardHeader>

@@ -28,7 +28,9 @@ export function AlertDialogContent({ className, ...props }: ComponentProps<typeo
       <Primitive.Overlay className="fixed inset-0 z-50 bg-foreground/40 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0" />
       <Primitive.Content
         className={cn(
-          "fixed top-1/2 left-1/2 z-50 flex w-[calc(100%-2rem)] max-w-auth-card -translate-x-1/2 -translate-y-1/2 flex-col gap-md rounded-3xl border border-border bg-card p-lg shadow-level-3 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95",
+          // Centred without a bracket value: a gutter either side from `inset-x-md`, capped by
+          // `max-w-modal`, and `mx-auto` does the centring that a negative translate used to.
+          "fixed inset-x-md top-1/2 z-50 mx-auto flex max-w-modal -translate-y-1/2 flex-col gap-md rounded-3xl border border-border bg-card p-lg shadow-level-3 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95",
           className,
         )}
         {...props}

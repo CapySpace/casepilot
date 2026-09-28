@@ -140,6 +140,7 @@
   --container-reading: 48rem; /* a readable column of running text */
   --container-shell: 80rem; /* the full-width application frame */
   --container-sidebar: 16rem; /* the Project sidebar, which every later phase's pages sit beside */
+  --container-modal: 28rem; /* a confirmation dialog: one question, two answers, nothing to scan */
 
   /* DESIGN.md §5 puts the three-zone desktop frame at 1200px and collapses the sidebar below it.
    * Tailwind's own `lg` (1024px) and `xl` (1280px) both straddle that line, so the breakpoint the

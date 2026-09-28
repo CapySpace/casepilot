@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useTransition, type ReactNode } from "react";
 
 import {
   AlertDialog,
@@ -17,23 +17,28 @@ import {
  * A destructive action, behind a question.
  *
  * All three of the phase's destructive actions use this: leaving a Project, removing somebody from one, and
- * cancelling an Invitation. The confirming control is a real submit button inside a real form, so what
- * happens when it is pressed is a form post to a Server Action like any other.
+ * cancelling an Invitation.
  *
- * **This does need JavaScript**, and that is a deliberate step back from the property the authentication
- * phase established — sign-out is a plain form precisely so it works without the bundle. Opening a dialog
- * cannot be. The trade was recorded in the phase spec before any of it was built: the alternative was a
- * confirmation page per action, which is three more routes and a navigation for each, and `DESIGN.md`
- * specifies modals for exactly this. The mutation itself still degrades — it is a form post — but the
- * question in front of it does not appear at all without the bundle, and nothing is destroyed by accident
- * as a result.
+ * **It needs JavaScript, and there is no pretending otherwise.** A dialog cannot open without the client
+ * bundle, so the question — and therefore the action behind it — is unreachable without one. That is the
+ * trade the phase spec recorded before any of this was built: the alternative was a confirmation page per
+ * action, three more routes and a navigation each, where `DESIGN.md` asks for modals. Nothing else in the
+ * product depends on the bundle this way; sign-out, and every form, still post without it.
+ *
+ * The confirming button **dispatches the Server Action itself** rather than submitting a form inside the
+ * dialog. The form version worked, but only by accident: the confirm button is Radix's close button, so the
+ * dialog's content — including the form — unmounts inside the click handler, and the browser performs a
+ * submission *after* that. It survived because the exit animation keeps the content mounted until
+ * `animationend`. Deleting that class, or adding the `prefers-reduced-motion` reset this stylesheet does not
+ * yet have, would have broken all three actions silently and with no error to find. Dispatching in the
+ * handler does not care what unmounts next.
  */
 export function ConfirmAction({
   trigger,
   title,
   description,
   confirmLabel,
-  children,
+  fields,
   action,
 }: {
   /** The control that opens the question. */
@@ -41,10 +46,12 @@ export function ConfirmAction({
   title: string;
   description: string;
   confirmLabel: string;
-  /** Hidden fields the action needs — which Project, which Membership, which Invitation. */
-  children?: ReactNode;
+  /** What the action needs to know — which Project, which Membership, which Invitation. */
+  fields: Record<string, string>;
   action: (formData: FormData) => void;
 }) {
+  const [pending, startTransition] = useTransition();
+
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>{trigger}</AlertDialogTrigger>
@@ -52,15 +59,25 @@ export function ConfirmAction({
         <AlertDialogTitle>{title}</AlertDialogTitle>
         <AlertDialogDescription>{description}</AlertDialogDescription>
 
-        <form action={action}>
-          {children}
-          <AlertDialogFooter>
-            {/* Cancel first in the markup, so it is what a keyboard reaches first: the safe answer to a
-                question about losing access should not need an extra press to avoid. */}
-            <AlertDialogCancel>Keep things as they are</AlertDialogCancel>
-            <AlertDialogAction type="submit">{confirmLabel}</AlertDialogAction>
-          </AlertDialogFooter>
-        </form>
+        <AlertDialogFooter>
+          {/*
+            Radix moves focus to the cancel control when the dialog opens, whatever order these are written
+            in — that is what makes the safe answer the one a keyboard has to leave, rather than the one it
+            has to reach.
+          */}
+          <AlertDialogCancel>Keep things as they are</AlertDialogCancel>
+          <AlertDialogAction
+            disabled={pending}
+            onClick={() => {
+              const formData = new FormData();
+              for (const [name, value] of Object.entries(fields)) formData.set(name, value);
+
+              startTransition(() => action(formData));
+            }}
+          >
+            {confirmLabel}
+          </AlertDialogAction>
+        </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
   );

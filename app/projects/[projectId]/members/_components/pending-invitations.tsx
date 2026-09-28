@@ -82,11 +82,9 @@ export function PendingInvitations({
                 title={projectMessages.cancelInvitationTitle}
                 description={projectMessages.cancelInvitationDescription(invitation.email)}
                 confirmLabel={projectMessages.cancelInvitationConfirm}
+                fields={{ projectId, invitationId: invitation.id }}
                 action={formAction}
-              >
-                <input type="hidden" name="projectId" value={projectId} />
-                <input type="hidden" name="invitationId" value={invitation.id} />
-              </ConfirmAction>
+              />
             </li>
           ))}
         </ul>

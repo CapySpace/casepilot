@@ -45,11 +45,9 @@ export function RemoveMember({
         title={projectMessages.removeTitle(name)}
         description={projectMessages.removeDescription(name)}
         confirmLabel={projectMessages.removeConfirm}
+        fields={{ projectId, userId }}
         action={formAction}
-      >
-        <input type="hidden" name="projectId" value={projectId} />
-        <input type="hidden" name="userId" value={userId} />
-      </ConfirmAction>
+      />
     </div>
   );
 }

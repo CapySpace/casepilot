@@ -169,6 +169,14 @@ columns never shift as values update during a run.
   status colours, paired with an inline legend of dot + label + tabular count. It is the product's
   signature object — the whole build's health as one horizontal glance.
 
+* **Modals / Confirmation dialogs:** A card at Level 3 elevation on a scrim, `rounded-3xl` (§5's `xl`),
+  holding a title, a sentence of consequence and two answers. Width `--container-modal` (`max-w-modal`,
+  28rem) with a `space-md` gutter either side on a narrow screen, so it never touches the edge. The scrim is
+  the foreground navy at 40% (`bg-foreground/40`) — the canvas dimmed rather than a new colour, because a
+  scrim that announced itself would be decoration. The destructive answer takes the primary button, because
+  in a confirmation the committing action *is* the destructive one; the safe answer is secondary and is what
+  keyboard focus lands on.
+
 * **Timeline (Attempt History):** A vertical hairline connector threading filled circular medallions —
   emerald with a white check for passed, crimson with a white cross for failed. Each entry leads with a
   status-coloured bold title (`Attempt #3 · Passed`), a right-aligned relative timestamp in slate, then

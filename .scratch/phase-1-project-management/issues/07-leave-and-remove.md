@@ -106,3 +106,32 @@ dialog.
 only reachable by posting directly at a Server Action, which no browser test can drive and which the RLS
 suite covers from the other side — it proves the database refuses. The action's *reporting* of that refusal
 is reasoned, not observed.
+
+**What the standards review changed.** The most valuable finding was one nothing would have caught:
+
+- **The confirmed submission worked by accident.** The confirming button is Radix's close button, so the
+  dialog's content — including the form inside it — unmounted during the click handler, and the browser
+  performs a submission *after* that. It survived only because the exit animation keeps content mounted until
+  `animationend`. Deleting that class, or adding the `prefers-reduced-motion` reset this stylesheet does not
+  yet have, would have broken leaving, removal and cancellation silently, with no error to find. The button
+  now dispatches the Server Action itself in the click handler, which does not care what unmounts next, and
+  `ConfirmAction` takes the action's arguments as `fields` rather than hidden inputs.
+- **That also retires a claim that was never quite true.** These three actions were described as degrading to
+  a form post. A form inside a dialog that cannot open without JavaScript was never reachable without
+  JavaScript, so the honest statement — now in the component — is that they need the bundle, and that nothing
+  else in the product does.
+- **A policy contradicted its own comment.** The comment said "not the owner row"; the code said
+  `role = 'member'`, which would have quietly stopped a Role added later from being able to leave. It is
+  `role <> 'owner'`.
+- **A modal's width was a bracket value.** `w-[calc(100%-2rem)]` is exactly what the design rules forbid, and
+  `max-w-auth-card` was the wrong token borrowed. There is a `--container-modal` now, with the dialog's
+  treatment — width, gutter, scrim, and which answer takes the primary button — recorded in DESIGN.md §4.
+- **My "Cancel comes first" comment named the wrong cause.** Radix moves focus to the cancel control when the
+  dialog opens whatever the markup order is. The property is real; the explanation was not.
+- **Two smaller things:** `leave-actions.ts` beside an existing `settings/actions.ts` was a second module for
+  one route's actions, which `members/actions.ts` had already settled — merged. And `const owner = …` named a
+  boolean the way the glossary names a person; it is `viewerIsOwner`.
+
+**Confirmed sound by the review**, which is worth recording because both were deliberate: the cascade
+reasoning (the referential action is an AFTER-ROW trigger, so the parent really is gone by the time the check
+runs), and the two delete policies having neither overlap nor gap.

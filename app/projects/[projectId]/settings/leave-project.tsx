@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { projectMessages } from "@/lib/projects/messages";
 
 import { ConfirmAction } from "../../_components/confirm-action";
-import { leaveProject, type LeaveState } from "./leave-actions";
+import { leaveProject, type LeaveState } from "./actions";
 
 export function LeaveProject({ projectId }: { projectId: string }) {
   const [state, formAction] = useActionState(leaveProject, { message: null } satisfies LeaveState);
@@ -27,10 +27,9 @@ export function LeaveProject({ projectId }: { projectId: string }) {
         title={projectMessages.leaveTitle}
         description={projectMessages.leaveDescription}
         confirmLabel={projectMessages.leaveConfirm}
+        fields={{ projectId }}
         action={formAction}
-      >
-        <input type="hidden" name="projectId" value={projectId} />
-      </ConfirmAction>
+      />
     </div>
   );
 }

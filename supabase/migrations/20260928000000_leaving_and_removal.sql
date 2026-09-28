@@ -9,7 +9,9 @@
 -- this is the same answer underneath.
 create policy "Members can leave a Project"
   on public.project_members for delete
-  using (user_id = (select auth.uid()) and role = 'member');
+  -- `<> 'owner'` rather than `= 'member'`: the rule is about not abandoning a Project, so a Role added later
+  -- inherits the ability to leave instead of silently losing it.
+  using (user_id = (select auth.uid()) and role <> 'owner');
 
 -- An Owner removes somebody. Not themselves — `and user_id <> auth.uid()` is what stops "remove" becoming
 -- a way to do what "leave" refuses.
