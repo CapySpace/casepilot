@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 
 import { safeNext } from "@/lib/auth/routes";
+import mark from "@/public/brand/casepilot-mark.png";
 
 import { SignUpForm } from "./sign-up-form";
 
@@ -19,21 +21,19 @@ export default async function SignUpPage({ searchParams }: PageProps<"/sign-up">
   return (
     <div className="w-full rounded-2xl border border-border bg-card p-lg shadow-level-1 sm:p-xl">
       <div className="mb-lg flex flex-col items-center text-center">
-        {/*
-          The design headed this "Create your CasePilot account" and closed it with "Already have an
-          account?". Account is a retired term — it was doing three jobs at once, and is now User
-          and Project — so the headings mirror the sign-in screen instead.
-        */}
-        <h1 className="text-headline-md">Sign up for CasePilot</h1>
+        <div className="mb-sm flex size-12 items-center justify-center rounded-xl border border-border bg-secondary p-2 shadow-level-1">
+          <Image src={mark} alt="" width={32} height={32} aria-hidden="true" />
+        </div>
+        <h1 className="text-headline-md">Create your CasePilot account</h1>
         <p className="mt-1.5 text-body-md text-muted-foreground">
-          Set up CasePilot in seconds. No credit card required.
+          Start your workspace in seconds. No credit card required.
         </p>
       </div>
 
       <SignUpForm next={destination || undefined} email={invited} />
 
       <div className="mt-lg border-t border-border pt-md text-center text-body-sm text-muted-foreground">
-        Already using CasePilot?{" "}
+        Already have an account?{" "}
         <Link
           href={destination ? `/sign-in?next=${encodeURIComponent(destination)}` : "/sign-in"}
           className="font-medium text-reference hover:underline"

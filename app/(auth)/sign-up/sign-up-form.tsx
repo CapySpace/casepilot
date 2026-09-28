@@ -62,7 +62,7 @@ export function SignUpForm({
         label="Work Email"
         icon={Mail}
         autoComplete="email"
-        placeholder="name@company.com"
+        placeholder="name@firm.com"
         // The invited address on a first render, then whatever they typed if something was rejected.
         defaultValue={state.values.email || email || ""}
         error={state.errors.email}
@@ -104,8 +104,13 @@ export function SignUpForm({
         ) : null}
       </div>
 
-      <Button type="submit" disabled={pending} size="field" className="w-full">
-        {pending ? "Creating…" : "Sign Up"}
+      <Button
+        type="submit"
+        disabled={pending}
+        size="field"
+        className="w-full text-primary-foreground"
+      >
+        {pending ? "Creating…" : "Create Account"}
         <ArrowRight aria-hidden="true" />
       </Button>
     </form>

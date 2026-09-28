@@ -30,7 +30,7 @@ async function registerFrom(page: Page, email: string, fullName = "Invited Teste
   await page.getByLabel("Full Name").fill(fullName);
   await page.getByLabel("Password", { exact: true }).fill(PASSWORD);
   await page.getByLabel(/I agree to the/).check();
-  await page.getByRole("button", { name: "Sign Up" }).click();
+  await page.getByRole("button", { name: "Create Account" }).click();
 }
 
 test("a signed-out visitor is told what they have been invited to, and how to take it up", async ({

@@ -126,7 +126,7 @@ test("registering really does send an email containing a working link", async ({
   await page.getByLabel("Work Email").fill(email);
   await page.getByLabel("Password", { exact: true }).fill("correcthorse1");
   await page.getByRole("checkbox").check();
-  await page.getByRole("button", { name: "Sign Up" }).click();
+  await page.getByRole("button", { name: "Create Account" }).click();
   await expect(page).toHaveURL(/\/check-email/);
 
   let html = "";
