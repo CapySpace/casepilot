@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { cache } from "react";
 
 import { verifySession } from "@/lib/auth/dal";
+import { hashInvitationToken } from "@/lib/projects/invitation-token";
 import { projectMessages } from "@/lib/projects/messages";
 import { createClient } from "@/lib/supabase/server";
 
@@ -311,3 +312,58 @@ export const listPendingInvitations = cache(
     }));
   },
 );
+
+/** What the acceptance page can say about a link, before anybody has signed in. */
+export type InvitationPreview = {
+  projectId: string;
+  projectName: string;
+  invitedBy: string;
+  email: string;
+  state: "pending" | "expired" | "accepted" | "cancelled";
+};
+
+type PreviewRow = {
+  project_id: string;
+  project_name: string;
+  invited_by_name: string;
+  email: string;
+  state: InvitationPreview["state"];
+};
+
+/**
+ * The one read in this module that does not establish a session first, and the only one that should ever
+ * be.
+ *
+ * An invitation is opened by somebody who may have no account at all, so a page that required a session
+ * could not tell them what they had been invited to — which is the whole of what it exists to say. The
+ * token is what stands in for identity here: `invitation_preview` is reachable by `anon` on purpose, takes
+ * a hash and returns one Project's name, the inviter's name and the address the Invitation was sent to.
+ * Nothing else, and nothing about anybody who did not receive that email.
+ *
+ * Returns null for a token it does not know. Not an error: "this link is wrong" is a thing for the page to
+ * say, not a fault to raise.
+ */
+export async function previewInvitation(token: string): Promise<InvitationPreview | null> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase.rpc("invitation_preview", {
+    p_token_hash: hashInvitationToken(token),
+  });
+
+  if (error) {
+    throw new Error(`Could not read the Invitation behind a link: ${error.message}`);
+  }
+
+  // Cast at the boundary, as `listProjectPeople` explains: without generated database types the client
+  // cannot know a function returns a set.
+  const [row] = (data ?? []) as PreviewRow[];
+  if (!row) return null;
+
+  return {
+    projectId: row.project_id,
+    projectName: row.project_name,
+    invitedBy: row.invited_by_name,
+    email: row.email,
+    state: row.state,
+  };
+}

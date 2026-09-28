@@ -8,12 +8,23 @@ type Credentials = {
   password: string;
 };
 
-/** Drives the real sign-in form, the way a User would. */
-export async function signIn(page: Page, { email, password }: Credentials) {
-  await page.goto("/sign-in");
+/**
+ * Fills and submits whatever sign-in form is already on screen.
+ *
+ * Separate from `signIn` because arriving at sign-in *from somewhere* is the interesting case: the form
+ * carries where it was going, and a helper that navigated first would throw that away — which it did, and
+ * which is why this exists.
+ */
+export async function submitSignIn(page: Page, { email, password }: Credentials) {
   await page.getByLabel("Work Email").fill(email);
   await page.getByLabel("Password", { exact: true }).fill(password);
   await page.getByRole("button", { name: "Sign In" }).click();
+}
+
+/** Drives the real sign-in form, the way a User would, starting from the sign-in page. */
+export async function signIn(page: Page, credentials: Credentials) {
+  await page.goto("/sign-in");
+  await submitSignIn(page, credentials);
 }
 
 /**

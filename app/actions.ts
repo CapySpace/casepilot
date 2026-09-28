@@ -3,9 +3,16 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { safeNext } from "@/lib/auth/confirmation";
 import { createClient } from "@/lib/supabase/server";
 
-export async function signOut() {
+export async function signOut(formData?: FormData) {
+  // Where to land afterwards, when the caller has a reason to say. The invitation page does: somebody
+  // holding a link addressed to a colleague needs to come back to it as the right person, not be dropped
+  // on a bare sign-in form. Reduced by the same guard every other redirect uses.
+  const requested = formData ? String(formData.get("next") ?? "") : "";
+  const destination = safeNext(requested, "/sign-in");
+
   const supabase = await createClient();
 
   // No scope argument: the provider's default revokes the refresh token server-side rather than
@@ -29,5 +36,5 @@ export async function signOut() {
   // replay the authenticated page from a payload captured while they were still signed in. The
   // browser's own back/forward cache is a separate thing, handled by `no-store` in proxy.ts.
   revalidatePath("/", "layout");
-  redirect("/sign-in");
+  redirect(destination);
 }

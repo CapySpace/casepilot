@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 
+import { rememberDestination } from "@/lib/auth/destination";
 import { messageForAuthError } from "@/lib/auth/messages";
 import { validateRegistration, type RegistrationErrors } from "@/lib/auth/validation";
 import { createClient } from "@/lib/supabase/server";
@@ -37,6 +38,10 @@ export async function signUp(_previous: SignUpState, formData: FormData): Promis
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
   const acceptedTerms = formData.get("terms") === "on";
+  // The invitation they came from, kept in a cookie rather than in the confirmation link: the link is
+  // built by the provider from a template, and varying it means handing the provider an absolute URL —
+  // which means deciding this site's origin from a Host header. See `lib/auth/destination.ts`.
+  const destination = String(formData.get("next") ?? "");
 
   const values = { fullName, email };
 
@@ -46,6 +51,11 @@ export async function signUp(_previous: SignUpState, formData: FormData): Promis
   if (Object.keys(errors).length > 0) {
     return { errors, message: null, values };
   }
+
+  // Before the attempt, so it is remembered whether or not the address turns out to be new: an
+  // already-registered address gets the same check-email page, and following its link should still land
+  // where they were going.
+  await rememberDestination(destination);
 
   const supabase = await createClient();
   const { error } = await supabase.auth.signUp({

@@ -11,7 +11,14 @@ import { FormAlert, TextField } from "@/components/form/fields";
 import { PasswordField } from "../_components/fields";
 import { signIn } from "./actions";
 
-export function SignInForm({ notice }: { notice: string | null }) {
+export function SignInForm({
+  notice,
+  next,
+}: {
+  notice: string | null;
+  /** Where to land afterwards: an invitation, when that is what sent them here. */
+  next?: string;
+}) {
   // Whatever brought them here starts in the same slot the action's own failures use, so there is
   // only ever one message on this form, and submitting replaces it rather than stacking.
   const [state, formAction, pending] = useActionState(signIn, { message: notice, email: "" });
@@ -19,6 +26,8 @@ export function SignInForm({ notice }: { notice: string | null }) {
   return (
     <form action={formAction} className="flex flex-col gap-md">
       <FormAlert message={state.message} />
+
+      {next && <input type="hidden" name="next" value={next} />}
 
       <TextField
         id="email"

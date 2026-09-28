@@ -47,3 +47,46 @@ describe("isPublicPath", () => {
     expect(isPublicPath("/SIGN-IN")).toBe(false);
   });
 });
+
+/**
+ * The invitation URL is the first public path that is not a fixed string, and the allow-list's own
+ * comment explains why that needed care: matching is exact, never by prefix, because a prefix would make
+ * `/sign-in-internal-admin` public. A pattern is the same hazard with more rope, so it is anchored at both
+ * ends and these are the spellings it must refuse.
+ */
+describe("the invitation path", () => {
+  const token = "a".repeat(43);
+
+  it("is public for a token of the right shape", () => {
+    expect(isPublicPath(`/invitations/${token}`)).toBe(true);
+    expect(isPublicPath(`/invitations/${"-_aZ09".repeat(7)}x`)).toBe(true);
+    // The exact set normalises a trailing slash, and so must the patterns.
+    expect(isPublicPath(`/invitations/${token}/`)).toBe(true);
+  });
+
+  it("refuses a token of the wrong length", () => {
+    expect(isPublicPath(`/invitations/${"a".repeat(42)}`)).toBe(false);
+    expect(isPublicPath(`/invitations/${"a".repeat(44)}`)).toBe(false);
+    expect(isPublicPath("/invitations/")).toBe(false);
+    expect(isPublicPath("/invitations")).toBe(false);
+  });
+
+  it("refuses characters a base64url token cannot contain", () => {
+    expect(isPublicPath(`/invitations/${"a".repeat(42)}.`)).toBe(false);
+    expect(isPublicPath(`/invitations/${"a".repeat(42)}+`)).toBe(false);
+    expect(isPublicPath(`/invitations/${"a".repeat(42)}%`)).toBe(false);
+    expect(isPublicPath(`/invitations/${"a".repeat(42)} `)).toBe(false);
+  });
+
+  it("refuses anything beyond the token", () => {
+    expect(isPublicPath(`/invitations/${token}/accept`)).toBe(false);
+    expect(isPublicPath(`/invitations/${token}/../projects`)).toBe(false);
+    expect(isPublicPath(`/projects/${token}`)).toBe(false);
+  });
+
+  it("refuses a path that merely starts the same way", () => {
+    expect(isPublicPath(`/invitationsX/${token}`)).toBe(false);
+    expect(isPublicPath(`/invitations-internal/${token}`)).toBe(false);
+    expect(isPublicPath(`/x/invitations/${token}`)).toBe(false);
+  });
+});

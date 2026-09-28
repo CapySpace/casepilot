@@ -19,7 +19,15 @@ const initialState: SignUpState = {
   values: { fullName: "", email: "" },
 };
 
-export function SignUpForm() {
+export function SignUpForm({
+  next,
+  email,
+}: {
+  /** Where to land once the address is confirmed: an invitation, when that is what sent them here. */
+  next?: string;
+  /** The address an invitation was sent to, so somebody invited does not have to retype it. */
+  email?: string;
+}) {
   const [state, formAction, pending] = useActionState(signUp, initialState);
   const [password, setPassword] = useState("");
 
@@ -33,6 +41,8 @@ export function SignUpForm() {
     */
     <form action={formAction} noValidate className="flex flex-col gap-md">
       <FormAlert message={state.message} />
+
+      {next && <input type="hidden" name="next" value={next} />}
 
       <TextField
         id="fullName"
@@ -53,7 +63,8 @@ export function SignUpForm() {
         icon={Mail}
         autoComplete="email"
         placeholder="name@company.com"
-        defaultValue={state.values.email}
+        // The invited address on a first render, then whatever they typed if something was rejected.
+        defaultValue={state.values.email || email || ""}
         error={state.errors.email}
       />
 

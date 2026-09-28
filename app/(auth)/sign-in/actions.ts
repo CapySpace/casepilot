@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { safeNext } from "@/lib/auth/confirmation";
 import { authMessages, messageForAuthError } from "@/lib/auth/messages";
 import { AUTHENTICATED_HOME } from "@/lib/auth/routes";
 import { createClient } from "@/lib/supabase/server";
@@ -22,6 +23,10 @@ export async function signIn(
 ): Promise<SignInState> {
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
+  // Where they were going before they were asked to sign in — an invitation, usually. Reduced to a path
+  // on this site by the same guard the confirmation route uses, so the form cannot be turned into an
+  // open redirect by whoever writes the link that leads to it.
+  const destination = safeNext(String(formData.get("next") ?? ""), AUTHENTICATED_HOME);
 
   // The form marks both fields required, but browser validation is not a security control — this
   // action is reachable without it. A blank field is answered with the same non-specific message as
@@ -41,5 +46,5 @@ export async function signIn(
   // set. This is for the client-side Router Cache, which is still holding the payload from when this
   // visitor was signed out and would otherwise be reused by the navigation below.
   revalidatePath("/", "layout");
-  redirect(AUTHENTICATED_HOME);
+  redirect(destination);
 }

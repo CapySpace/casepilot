@@ -33,13 +33,29 @@ export const PUBLIC_PATHS = [
 const PUBLIC_PATH_SET: ReadonlySet<string> = new Set(PUBLIC_PATHS);
 
 /**
- * Matching is exact, not by prefix. A prefix would make `/sign-in-internal-admin` public, which is
- * the kind of hole nobody notices until it is found for them.
+ * The public paths that cannot be written down, because they carry a secret.
+ *
+ * One entry, and the bar for a second is high. An invitation link is opened by somebody who has never
+ * signed in — they may not even have an account yet — so the page has to be reachable without a session,
+ * and the token in it means the path is different every time.
+ *
+ * Every pattern is anchored at **both** ends and describes exactly what it admits: 43 base64url
+ * characters, which is what `mintInvitationToken` produces. An unanchored pattern here would be the
+ * prefix hole the exact set exists to avoid, with a regular expression to hide it in.
+ */
+const PUBLIC_PATTERNS: readonly RegExp[] = [/^\/invitations\/[A-Za-z0-9_-]{43}$/];
+
+/**
+ * Matching is exact, or against one of the anchored patterns above. Never by prefix: a prefix would make
+ * `/sign-in-internal-admin` public, which is the kind of hole nobody notices until it is found for them.
  */
 export function isPublicPath(pathname: string): boolean {
   const normalised =
     pathname.length > 1 && pathname.endsWith("/") ? pathname.slice(0, -1) : pathname;
 
-  return PUBLIC_PATH_SET.has(normalised);
+  return (
+    PUBLIC_PATH_SET.has(normalised) ||
+    PUBLIC_PATTERNS.some((pattern) => pattern.test(normalised))
+  );
 }
 

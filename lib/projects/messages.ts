@@ -67,6 +67,33 @@ export const projectMessages = {
    */
   inviterNoLongerHere: "someone who has since left the project",
 
+  /**
+   * What an invitation link says when it is not one, or no longer one.
+   *
+   * Four different answers, because they ask four different things of the reader: a wrong link means
+   * check the link, an expired one means ask for another, a cancelled one means ask whether you should
+   * be joining at all, and a spent one usually means you are already in.
+   */
+  invitationNotFound:
+    "This invitation link is not valid. Check that you copied all of it, or ask for a new one.",
+
+  invitationExpired:
+    "This invitation has expired. Invitations last seven days — ask whoever invited you for a new one.",
+
+  invitationCancelledNotice:
+    "This invitation was cancelled. Ask whoever invited you if you should still be joining.",
+
+  invitationAlreadyUsed: "This invitation has already been used.",
+
+  /** Said to somebody holding a link addressed to an address that is not theirs. */
+  invitationForSomebodyElse(invited: string, signedInAs: string) {
+    return `This invitation was sent to ${invited}, and you are signed in as ${signedInAs}. Sign in as ${invited} to accept it.`;
+  },
+
+  alreadyInThisProject: "You are already a member of this project.",
+
+  couldNotAccept: "Something went wrong accepting the invitation. You have not been added.",
+
   /** Said after a save that worked, because a form that goes quiet leaves the User guessing. */
   projectUpdated: "Project updated.",
 

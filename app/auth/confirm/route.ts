@@ -1,7 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import { parseConfirmationLink } from "@/lib/auth/confirmation";
+import { takeRememberedDestination } from "@/lib/auth/destination";
 import type { AuthNotice } from "@/lib/auth/messages";
+import { AUTHENTICATED_HOME } from "@/lib/auth/routes";
 import { createClient } from "@/lib/supabase/server";
 
 /**
@@ -44,6 +46,10 @@ export async function GET(request: NextRequest) {
     token_hash: link.tokenHash,
   });
 
+  // Consumed either way, success or failure: a destination that outlived its confirmation would pull
+  // somebody sideways on the next one.
+  const remembered = await takeRememberedDestination();
+
   if (error) {
     // A spent *signup* link in an inbox is the commonest way to get here, and somebody who is
     // already signed in has nothing left to fix — so send them where the link was going rather
@@ -54,11 +60,27 @@ export async function GET(request: NextRequest) {
     // destination of their choosing, which is a failed check reported as a success.
     if (link.type === "signup") {
       const { data } = await supabase.auth.getUser();
-      if (data.user) return sendTo(link.next);
+      if (data.user) return sendTo(onwardFrom(link.next, remembered));
     }
 
     return withNotice("expired-link");
   }
 
-  return sendTo(link.next);
+  return sendTo(onwardFrom(link.next, remembered));
+}
+
+/**
+ * Where the User goes after the token is spent.
+ *
+ * The link's own destination wins when it has one of its own, which is what makes a recovery link land on
+ * the reset form. Otherwise it is whatever registration remembered — the invitation somebody was opening
+ * when they were asked to make an account — and failing that, their Projects.
+ *
+ * Both halves are already reduced to a path on this site: `parseConfirmationLink` runs the link's through
+ * `safeNext`, and `takeRememberedDestination` runs the cookie's through the same guard.
+ */
+function onwardFrom(fromLink: string, remembered: string | null): string {
+  if (fromLink !== AUTHENTICATED_HOME) return fromLink;
+
+  return remembered ?? AUTHENTICATED_HOME;
 }

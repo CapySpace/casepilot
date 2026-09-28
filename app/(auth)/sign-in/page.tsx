@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { safeNext } from "@/lib/auth/confirmation";
 import { messageForNotice } from "@/lib/auth/messages";
 
 import { SignInForm } from "./sign-in-form";
@@ -12,8 +13,11 @@ export const metadata: Metadata = {
 export default async function SignInPage({ searchParams }: PageProps<"/sign-in">) {
   // Set by the confirmation endpoint when a link could not be used. It carries a key, not a
   // message, so the only words that can appear here are CasePilot's own.
-  const { error } = await searchParams;
+  const { error, next } = await searchParams;
   const notice = messageForNotice(error);
+  // Reduced to a path on this site before it reaches the form, so a link written by anybody cannot make
+  // signing in bounce somewhere else.
+  const destination = safeNext(typeof next === "string" ? next : null, "");
 
   return (
     <div className="w-full rounded-2xl border border-border bg-card p-lg shadow-level-1 sm:p-xl">
@@ -36,11 +40,14 @@ export default async function SignInPage({ searchParams }: PageProps<"/sign-in">
         client-side navigation that changes `?error=` would otherwise leave the previous message
         showing.
       */}
-      <SignInForm key={notice ?? "none"} notice={notice} />
+      <SignInForm key={notice ?? "none"} notice={notice} next={destination || undefined} />
 
       <div className="mt-lg border-t border-border pt-md text-center text-body-sm text-muted-foreground">
         New to CasePilot?{" "}
-        <Link href="/sign-up" className="font-medium text-reference hover:underline">
+        <Link
+          href={destination ? `/sign-up?next=${encodeURIComponent(destination)}` : "/sign-up"}
+          className="font-medium text-reference hover:underline"
+        >
           Sign up
         </Link>
       </div>

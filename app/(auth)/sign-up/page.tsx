@@ -1,13 +1,21 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { safeNext } from "@/lib/auth/confirmation";
+
 import { SignUpForm } from "./sign-up-form";
 
 export const metadata: Metadata = {
   title: "Sign up · CasePilot",
 };
 
-export default function SignUpPage() {
+export default async function SignUpPage({ searchParams }: PageProps<"/sign-up">) {
+  const { next, email } = await searchParams;
+  // Both reduced before they reach the form: the destination to a path on this site, and the address to a
+  // single string. Neither is trusted beyond being a default in a box the User can change.
+  const destination = safeNext(typeof next === "string" ? next : null, "");
+  const invited = typeof email === "string" ? email : undefined;
+
   return (
     <div className="w-full rounded-2xl border border-border bg-card p-lg shadow-level-1 sm:p-xl">
       <div className="mb-lg flex flex-col items-center text-center">
@@ -22,11 +30,14 @@ export default function SignUpPage() {
         </p>
       </div>
 
-      <SignUpForm />
+      <SignUpForm next={destination || undefined} email={invited} />
 
       <div className="mt-lg border-t border-border pt-md text-center text-body-sm text-muted-foreground">
         Already using CasePilot?{" "}
-        <Link href="/sign-in" className="font-medium text-reference hover:underline">
+        <Link
+          href={destination ? `/sign-in?next=${encodeURIComponent(destination)}` : "/sign-in"}
+          className="font-medium text-reference hover:underline"
+        >
           Sign in
         </Link>
       </div>
