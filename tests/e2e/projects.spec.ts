@@ -22,9 +22,9 @@ test("a User with no Projects is told what to do next", async ({ page }) => {
   await signIn(page, anna);
 
   await expect(page).toHaveURL("/projects");
-  await expect(page.getByRole("heading", { name: "My Projects" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Projects", exact: true })).toBeVisible();
   await expect(page.getByText("You are not in any projects yet")).toBeVisible();
-  await expect(page.getByRole("link", { name: "Create Project" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "New Project" })).toBeVisible();
 });
 
 test("the root sends a signed-in User to their Projects", async ({ page }) => {
@@ -40,7 +40,7 @@ test("creating a Project opens it, and it appears on the list", async ({ page })
   const anna = await signedInUser();
   await signInAndLand(page, anna);
 
-  await page.getByRole("link", { name: "Create Project" }).click();
+  await page.getByRole("link", { name: "New Project" }).click();
   await expect(page).toHaveURL("/projects/new");
 
   await page.getByLabel("Project Name").fill("Mobile Banking App");

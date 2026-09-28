@@ -51,12 +51,14 @@ export type ProjectSummary = {
   description: string | null;
   role: ProjectRole;
   memberCount: number;
+  createdAt: string;
 };
 
 type ProjectRow = {
   id: string;
   name: string;
   description: string | null;
+  created_at: string;
   /** The aggregate, counted by the database. PostgREST returns it as a single-element array. */
   members: { count: number }[];
   /** The caller's own Membership — which is why the query filters this embed to them. */
@@ -84,7 +86,7 @@ export const listMyProjects = cache(async (): Promise<ProjectSummary[]> => {
   const { data, error } = await supabase
     .from("projects")
     .select(
-      "id, name, description, members:project_members(count), mine:project_members!inner(role)",
+      "id, name, description, created_at, members:project_members(count), mine:project_members!inner(role)",
     )
     .eq("mine.user_id", user.id)
     .order("name", { ascending: true })
@@ -102,6 +104,7 @@ export const listMyProjects = cache(async (): Promise<ProjectSummary[]> => {
     description: project.description,
     role: roleOf(project),
     memberCount: countOf(project),
+    createdAt: project.created_at,
   }));
 });
 

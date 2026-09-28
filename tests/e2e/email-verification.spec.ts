@@ -107,7 +107,7 @@ test("following an old link again after verifying is not alarming", async ({ pag
   await expect(page).toHaveURL(AUTHENTICATED_HOME);
   // The authenticated area's own heading, not an error: a spent link takes somebody who has already
   // verified exactly where it was always going to take them.
-  await expect(page.getByRole("heading", { name: "My Projects" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Projects", exact: true })).toBeVisible();
 });
 
 /**

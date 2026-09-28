@@ -72,7 +72,7 @@ test("the redirect happens before any protected content is sent", async ({ page 
   expect(response.status()).toBeGreaterThanOrEqual(300);
   expect(response.status()).toBeLessThan(400);
   expect(response.headers()["location"]).toContain("/sign-in");
-  expect(await response.text()).not.toContain("My Projects");
+  expect(await response.text()).not.toContain("Every project you own");
 });
 
 test("a route nobody has declared public is protected by default", async ({ page }) => {
