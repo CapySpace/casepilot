@@ -14,8 +14,8 @@ import { Eyebrow } from "@/components/eyebrow";
  * rendering too, so the active item is already marked in the HTML rather than appearing once the
  * bundle loads.
  *
- * Builds and Cases arrive in the next phase. Nothing is listed here before it exists: a navigation
- * item that goes nowhere is worse than a short list.
+ * Cases arrive in the next phase. Nothing is listed here before it exists: a navigation item that
+ * goes nowhere is worse than a short list.
  */
 
 type NavItem = {

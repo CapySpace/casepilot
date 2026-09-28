@@ -172,6 +172,8 @@ export async function createBuild(
   }
 
   // The Build list is about to gain a row, and the Router Cache is still holding the version without it.
+  // The Release list's Build count is stale for the same reason — it reads the count from this Release too.
+  revalidatePath(`/projects/${projectId}/releases`);
   revalidatePath(`/projects/${projectId}/releases/${releaseId}`);
 
   // Blank, not an echo: a create that worked leaves nothing worth keeping in the form, and the next
