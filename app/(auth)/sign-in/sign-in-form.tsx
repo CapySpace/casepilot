@@ -58,7 +58,7 @@ export function SignInForm({
         absent: session lifetime is uniform for everyone, taking the provider's defaults.
       */}
 
-      <Button type="submit" disabled={pending} className="h-11 w-full text-body-lg">
+      <Button type="submit" disabled={pending} size="field" className="w-full">
         {pending ? "Signing in…" : "Sign In"}
         <ArrowRight aria-hidden="true" />
       </Button>

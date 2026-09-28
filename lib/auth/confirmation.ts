@@ -1,6 +1,6 @@
 import type { EmailOtpType } from "@supabase/supabase-js";
 
-import { AUTHENTICATED_HOME } from "./routes";
+import { safeNext } from "./routes";
 
 /**
  * The two token types CasePilot issues. Both arrive at the same confirmation endpoint and are told
@@ -16,49 +16,18 @@ type IssuedType = (typeof ISSUED_TYPES)[number];
 export type ConfirmationLink = {
   tokenHash: string;
   type: IssuedType;
-  next: string;
+  /**
+   * Where the link says to go afterwards, or null when it says nothing.
+   *
+   * Null rather than a default, because the caller has a better answer than this module does: the
+   * confirmation route weighs it against what registration remembered. A default here would be
+   * indistinguishable from a link that named that same path, and from one whose destination was refused.
+   */
+  next: string | null;
 };
 
 function isIssuedType(value: string): value is IssuedType {
   return (ISSUED_TYPES as readonly string[]).includes(value);
-}
-
-/** Only ever used to resolve a relative path; never appears in a redirect. */
-const PROBE_ORIGIN = "http://resolve.invalid";
-
-/**
- * The onward destination, reduced to something safe to redirect to.
- *
- * It arrives in a URL that anybody can write. Redirecting wherever it points would be an open
- * redirect, and a link that verifies a genuine token before landing the User on somebody else's
- * sign-in page is a credible piece of phishing — the first half really is from us.
- *
- * So: a path on this site, or the authenticated area. Nothing else.
- */
-export function safeNext(next: string | null | undefined, fallback = "/"): string {
-  if (!next) return fallback;
-
-  // Parse it rather than pattern-match it. The URL parser is the authority on what a browser will
-  // do with a string — it strips tabs and newlines, normalises backslashes into slashes, and
-  // resolves `..` — and every hand-rolled rule here was a guess at that behaviour.
-  let resolved: URL;
-  try {
-    resolved = new URL(next, PROBE_ORIGIN);
-  } catch {
-    return fallback;
-  }
-
-  // Anything absolute, protocol-relative, or carrying its own scheme has moved off the probe
-  // origin by now. `javascript:` lands here too, with an origin of "null".
-  if (resolved.origin !== PROBE_ORIGIN) return fallback;
-
-  const path = `${resolved.pathname}${resolved.search}`;
-
-  // `/..//evil.example` is same-origin when parsed, but normalises to a path that would be read as
-  // a host the *next* time it is resolved. Check the result, not just the input.
-  if (!path.startsWith("/") || path.startsWith("//")) return fallback;
-
-  return path;
 }
 
 /**
@@ -75,5 +44,7 @@ export function parseConfirmationLink(params: URLSearchParams): ConfirmationLink
 
   if (!tokenHash || !type || !isIssuedType(type)) return null;
 
-  return { tokenHash, type, next: safeNext(params.get("next"), AUTHENTICATED_HOME) };
+  const next = params.get("next");
+
+  return { tokenHash, type, next: next === null ? null : safeNext(next, "") || null };
 }

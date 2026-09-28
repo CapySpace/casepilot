@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { safeNext } from "@/lib/auth/confirmation";
+import { safeNext } from "@/lib/auth/routes";
 import { authMessages, messageForAuthError } from "@/lib/auth/messages";
 import { AUTHENTICATED_HOME } from "@/lib/auth/routes";
 import { createClient } from "@/lib/supabase/server";

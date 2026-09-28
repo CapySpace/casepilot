@@ -85,3 +85,44 @@ for the Owner to cancel, exactly as ticket 01 recorded.
 filling the form, which threw away the `?next=` the invitation had put there — so the first version of the
 sign-in test passed through a form that had forgotten where it was going. It is `submitSignIn()` now, for
 filling the form already on screen, with `signIn()` built on top.
+
+**What the review changed.** One was a disclosure bug:
+
+- **The remembered destination was bound to the browser, not to the person.** On a shared machine, somebody
+  began registering from an invitation and whoever next confirmed *anything* in that browser was handed it —
+  landing on an invitation page naming a Project, an inviter and somebody else's address, without ever
+  holding the token. That is exactly the disclosure this page justifies by saying the token is what you must
+  hold. The cookie now carries who it is for and is honoured for nobody else; it is left in place rather
+  than consumed when it belongs to somebody else, so an intervening confirmation no longer silently drops a
+  pending invitation. A browser test drives that sequence.
+- **An abandoned destination outlived its reason.** Registering from an invitation, abandoning it and
+  registering plainly within the hour delivered the second registration to the first invitation. Nothing to
+  remember now clears what was remembered.
+- **`wrong_address` was reported as "something went wrong".** Nothing had gone wrong: the link is fine and
+  the reader is not the person it was addressed to. It says so, naming both addresses, and the
+  `destructive` crimson alert is gone with it — DESIGN.md §2 is explicit that colouring a non-failure red
+  would lie.
+- **"Already a member" was a silent redirect, and its message was dead code.** The criterion says *told so
+  plainly*; a page that quietly moves leaves somebody wondering whether they joined twice. They are told,
+  and then given the way in.
+- **Two vocabularies for one fact.** `invitation_preview` says `accepted` where `accept_invitation` says
+  `used`, and the page and the action each mapped states to words separately. `lib/projects/invitation-state.ts`
+  holds one vocabulary and one mapping, used by both.
+- **The switch relied on a comment for its correctness** — `redirect` throwing was what stopped a
+  fallthrough. The one path that leaves the page is an `if` before the switch now, and an outcome this
+  application has never heard of no longer claims the link is invalid.
+- **`lib/projects/dal.ts` claimed something untrue.** Its header said every read establishes a session
+  first; `previewInvitation` cannot. The header names the exception and says it is the only one.
+- **A sentinel that could not mean what it was asked to.** `parseConfirmationLink` defaulted `next` to the
+  landing page, so the confirmation route could not tell "no destination" from "a link naming that same
+  path" from "a destination `safeNext` refused". It returns null now, and the route's choice is one line.
+- **`safeNext` moved to `lib/auth/routes.ts`.** Five callers sanitise a redirect target, and importing that
+  from a module named for email confirmation pointed the reader at the wrong thing.
+- **The primary button was on the wrong control.** DESIGN.md §4 keeps it for the committing action, one per
+  view; on an invitation that is *Join*, not "Create an account". Both routes are secondary.
+- **Ten copies of `h-11 w-full text-body-lg`** became a `size="field"` on Button — 44px, the height
+  DESIGN.md §4 pairs with its inputs, which shadcn's `lg` (36px) is not.
+
+**Left undone, deliberately:** the auth card's `rounded-2xl border border-border bg-card p-lg shadow-level-1
+sm:p-xl` is now its third verbatim copy and wants to move into the `(auth)` layout. That touches six pages
+that are not this ticket's, and not every one of them wants a card.

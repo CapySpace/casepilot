@@ -6,6 +6,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { currentUser } from "@/lib/auth/dal";
 import { previewInvitation, type InvitationPreview } from "@/lib/projects/dal";
+import { messageForInvitationState } from "@/lib/projects/invitation-state";
 import { projectMessages } from "@/lib/projects/messages";
 
 import { signOut } from "@/app/actions";
@@ -37,7 +38,11 @@ export default async function InvitationPage({ params }: PageProps<"/invitations
   return (
     <div className="w-full rounded-2xl border border-border bg-card p-lg shadow-level-1 sm:p-xl">
       {invitation === null ? (
-        <Outcome title="Invitation" body={projectMessages.invitationNotFound} />
+        <Notice
+          title="Invitation"
+          body={messageForInvitationState("unknown")}
+          signedIn={user !== null}
+        />
       ) : (
         <Invitation invitation={invitation} token={token} signedInAs={user?.email ?? null} />
       )}
@@ -56,16 +61,16 @@ function Invitation({
 }) {
   const { projectName, invitedBy, email, state } = invitation;
 
-  if (state === "expired") {
-    return <Outcome title={projectName} body={projectMessages.invitationExpired} />;
-  }
-
-  if (state === "cancelled") {
-    return <Outcome title={projectName} body={projectMessages.invitationCancelledNotice} />;
-  }
-
-  if (state === "accepted") {
-    return <Outcome title={projectName} body={projectMessages.invitationAlreadyUsed} />;
+  // One mapping from state to words, shared with the accept action, so the page and the button cannot
+  // describe the same link differently.
+  if (state !== "pending") {
+    return (
+      <Notice
+        title={projectName}
+        body={messageForInvitationState(state)}
+        signedIn={signedInAs !== null}
+      />
+    );
   }
 
   const destination = `/invitations/${token}`;
@@ -87,7 +92,12 @@ function Invitation({
             page cannot tell which. Both carry the invitation, so neither is a dead end: registering comes
             back here after the address is confirmed, and signing in comes straight back.
           */}
-          <Button asChild className="h-11 w-full text-body-lg">
+          {/*
+            Both secondary. DESIGN.md §4 reserves the primary button for "the committing action", one per
+            view — and the committing action here is joining the Project, which neither of these is. They
+            are two ways to identify yourself, and the page cannot tell which applies to the reader.
+          */}
+          <Button asChild variant="secondary" size="field" className="w-full">
             <Link
               href={`/sign-up?next=${encodeURIComponent(destination)}&email=${encodeURIComponent(email)}`}
             >
@@ -95,7 +105,7 @@ function Invitation({
               Create an account
             </Link>
           </Button>
-          <Button asChild variant="secondary" className="h-11 w-full text-body-lg">
+          <Button asChild variant="secondary" size="field" className="w-full">
             <Link href={`/sign-in?next=${encodeURIComponent(destination)}`}>
               <LogIn aria-hidden="true" />
               Sign in
@@ -107,7 +117,12 @@ function Invitation({
         </div>
       ) : signedInAs.toLowerCase() !== email.toLowerCase() ? (
         <div className="flex flex-col gap-md">
-          <Alert variant="destructive">
+          {/*
+            Not `destructive`. Alarm Crimson is a verdict in this product, and nothing has failed here: the
+            link is fine, the reader is simply not the person it was addressed to. DESIGN.md §2 is explicit
+            that colouring a non-failure red would lie.
+          */}
+          <Alert>
             <Mail aria-hidden="true" />
             <AlertDescription>
               {projectMessages.invitationForSomebodyElse(email, signedInAs)}
@@ -124,7 +139,7 @@ function Invitation({
               name="next"
               value={`/sign-in?next=${encodeURIComponent(destination)}`}
             />
-            <Button type="submit" variant="secondary" className="h-11 w-full text-body-lg">
+            <Button type="submit" variant="secondary" size="field" className="w-full">
               Sign out and sign in as {email}
             </Button>
           </form>
@@ -136,7 +151,16 @@ function Invitation({
   );
 }
 
-function Outcome({ title, body }: { title: string; body: string }) {
+/** A link that cannot be taken up, and the nearest useful place to go instead. */
+function Notice({
+  title,
+  body,
+  signedIn,
+}: {
+  title: string;
+  body: string;
+  signedIn: boolean;
+}) {
   return (
     <div className="flex flex-col gap-lg">
       <div className="flex flex-col items-center gap-2xs text-center">
@@ -144,8 +168,12 @@ function Outcome({ title, body }: { title: string; body: string }) {
         <p className="text-body-md text-muted-foreground">{body}</p>
       </div>
 
-      <Button asChild variant="secondary" className="h-11 w-full text-body-lg">
-        <Link href="/projects">Go to my projects</Link>
+      {/* Somebody signed out has no projects to go to; sending them to a page that bounces them back to
+          sign-in would be a worse answer than the sign-in page itself. */}
+      <Button asChild variant="secondary" size="field" className="w-full">
+        <Link href={signedIn ? "/projects" : "/sign-in"}>
+          {signedIn ? "Go to my projects" : "Go to sign in"}
+        </Link>
       </Button>
     </div>
   );

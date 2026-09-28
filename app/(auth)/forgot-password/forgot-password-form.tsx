@@ -80,7 +80,7 @@ export function ForgotPasswordForm() {
           error={state.error ?? undefined}
         />
 
-        <Button type="submit" disabled={pending} className="h-11 w-full text-body-lg">
+        <Button type="submit" disabled={pending} size="field" className="w-full">
           {pending ? "Sending…" : "Send reset link"}
           <ArrowRight aria-hidden="true" />
         </Button>

@@ -2,7 +2,7 @@ import "server-only";
 
 import { cookies } from "next/headers";
 
-import { safeNext } from "./confirmation";
+import { safeNext } from "./routes";
 
 /**
  * Where to send somebody once they have confirmed their email address.
@@ -20,20 +20,36 @@ import { safeNext } from "./confirmation";
  *
  * The cost is honest and small: somebody who registers in one browser and opens the email in another
  * lands on their Projects instead, with the invitation link still in their inbox.
+ *
+ * It is bound to the **address**, not just the browser. Without that, a shared machine leaks: one person
+ * begins registering from an invitation, and whoever next confirms *anything* in that browser is handed
+ * the destination — landing on an invitation page that names a Project, an inviter and somebody else's
+ * address to a reader who never held the token. That is precisely the disclosure the page justifies by
+ * saying the token is what you must hold, so the cookie carries who it is for and is honoured for nobody
+ * else.
  */
 const COOKIE = "casepilot-after-confirmation";
 
 /** Long enough to read an email and follow a link, short enough not to outlive the reason. */
 const LIFETIME_SECONDS = 60 * 60;
 
-export async function rememberDestination(path: string): Promise<void> {
+export async function rememberDestination(path: string, email: string): Promise<void> {
   // Reduced by the same guard the confirmation route uses, so a poisoned value is a path on this site or
   // nothing at all. Storing it unchecked would make this cookie an open redirect with a longer fuse.
   const safe = safeNext(path, "");
-  if (safe === "") return;
-
   const jar = await cookies();
-  jar.set(COOKIE, safe, {
+
+  // Nothing to remember clears what was remembered before. Otherwise somebody who starts from an
+  // invitation, abandons it, and registers plainly within the hour is delivered to the old invitation by a
+  // cookie nobody meant to leave behind.
+  if (safe === "" || email.trim() === "") {
+    jar.delete(COOKIE);
+    return;
+  }
+
+  // The address first, then the path: an address cannot contain a space, so one split is unambiguous
+  // however odd the path is.
+  jar.set(COOKIE, `${email.trim().toLowerCase()} ${safe}`, {
     httpOnly: true,
     sameSite: "lax",
     path: "/",
@@ -43,20 +59,37 @@ export async function rememberDestination(path: string): Promise<void> {
 }
 
 /**
- * The remembered destination, consumed.
+ * The remembered destination, for the person who just confirmed their address — and nobody else.
  *
- * Read once and deleted, so a stale invitation cannot pull somebody sideways on a later confirmation.
+ * Consumed when it is theirs, so a spent destination cannot pull them sideways on a later confirmation.
+ * Left alone when it is not: somebody else on this browser may still be waiting for it, and it expires on
+ * its own within the hour either way.
  */
-export async function takeRememberedDestination(): Promise<string | null> {
+export async function takeRememberedDestination(email: string | null): Promise<string | null> {
   const jar = await cookies();
   const remembered = jar.get(COOKIE)?.value;
 
   if (remembered === undefined) return null;
 
+  const separator = remembered.indexOf(" ");
+  const rememberedFor = separator === -1 ? "" : remembered.slice(0, separator);
+  const path = separator === -1 ? "" : remembered.slice(separator + 1);
+
+  // Unreadable, so it can only be something this application did not write. Removed rather than left to
+  // rot.
+  if (rememberedFor === "" || path === "") {
+    jar.delete(COOKIE);
+    return null;
+  }
+
+  // Somebody else's. Left where it is, and emphatically not followed: it names a Project and an address
+  // that are none of this reader's business.
+  if (email === null || email.trim().toLowerCase() !== rememberedFor) return null;
+
   jar.delete(COOKIE);
 
   // Checked again on the way out. What went in was safe, but a cookie is a value from the browser and
   // this is the last moment before it becomes a redirect.
-  const safe = safeNext(remembered, "");
+  const safe = safeNext(path, "");
   return safe === "" ? null : safe;
 }

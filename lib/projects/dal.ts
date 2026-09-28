@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { cache } from "react";
 
 import { verifySession } from "@/lib/auth/dal";
+import type { InvitationState } from "@/lib/projects/invitation-state";
 import { hashInvitationToken } from "@/lib/projects/invitation-token";
 import { projectMessages } from "@/lib/projects/messages";
 import { createClient } from "@/lib/supabase/server";
@@ -11,10 +12,13 @@ import { createClient } from "@/lib/supabase/server";
 /**
  * Reading Projects, on the authenticated side of the boundary.
  *
- * Every function here goes through `verifySession()` first, so the identity is the provider's answer
- * and not the browser's claim (ADR-0002). Row-level security is what decides which rows come back;
- * these functions do not filter for visibility, and must not start — a page that filters is a page
- * that can forget to.
+ * Every function here goes through `verifySession()` first, so the identity is the provider's answer and
+ * not the browser's claim (ADR-0002) — with exactly one exception, `previewInvitation`, which is reachable
+ * without a session because the person opening an invitation may not have an account yet. It says so
+ * itself, at length, and it is the only one: a second would mean this sentence had stopped being a rule.
+ *
+ * Row-level security is what decides which rows come back; these functions do not filter for visibility,
+ * and must not start — a page that filters is a page that can forget to.
  */
 
 export type ProjectRole = "owner" | "member";
@@ -319,7 +323,7 @@ export type InvitationPreview = {
   projectName: string;
   invitedBy: string;
   email: string;
-  state: "pending" | "expired" | "accepted" | "cancelled";
+  state: Exclude<InvitationState, "unknown">;
 };
 
 type PreviewRow = {
@@ -343,7 +347,7 @@ type PreviewRow = {
  * Returns null for a token it does not know. Not an error: "this link is wrong" is a thing for the page to
  * say, not a fault to raise.
  */
-export async function previewInvitation(token: string): Promise<InvitationPreview | null> {
+export const previewInvitation = cache(async (token: string): Promise<InvitationPreview | null> => {
   const supabase = await createClient();
 
   const { data, error } = await supabase.rpc("invitation_preview", {
@@ -366,4 +370,4 @@ export async function previewInvitation(token: string): Promise<InvitationPrevie
     email: row.email,
     state: row.state,
   };
-}
+});

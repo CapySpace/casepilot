@@ -41,14 +41,10 @@ export async function GET(request: NextRequest) {
   if (!link) return withNotice("invalid-link");
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.verifyOtp({
+  const { data, error } = await supabase.auth.verifyOtp({
     type: link.type,
     token_hash: link.tokenHash,
   });
-
-  // Consumed either way, success or failure: a destination that outlived its confirmation would pull
-  // somebody sideways on the next one.
-  const remembered = await takeRememberedDestination();
 
   if (error) {
     // A spent *signup* link in an inbox is the commonest way to get here, and somebody who is
@@ -59,12 +55,19 @@ export async function GET(request: NextRequest) {
     // holding a session could write themselves a link with a nonsense token and be handed the
     // destination of their choosing, which is a failed check reported as a success.
     if (link.type === "signup") {
-      const { data } = await supabase.auth.getUser();
-      if (data.user) return sendTo(onwardFrom(link.next, remembered));
+      const { data: signedIn } = await supabase.auth.getUser();
+      if (signedIn.user) {
+        const remembered = await takeRememberedDestination(signedIn.user.email ?? null);
+        return sendTo(onwardFrom(link.next, remembered));
+      }
     }
 
     return withNotice("expired-link");
   }
+
+  // Whose confirmation this was. The remembered destination is honoured only for them — a shared browser
+  // must not hand one person's invitation to whoever confirms next.
+  const remembered = await takeRememberedDestination(data.user?.email ?? null);
 
   return sendTo(onwardFrom(link.next, remembered));
 }
@@ -72,15 +75,13 @@ export async function GET(request: NextRequest) {
 /**
  * Where the User goes after the token is spent.
  *
- * The link's own destination wins when it has one of its own, which is what makes a recovery link land on
- * the reset form. Otherwise it is whatever registration remembered — the invitation somebody was opening
- * when they were asked to make an account — and failing that, their Projects.
+ * In order: what the link asked for, which is how a recovery link lands on the reset form; then what
+ * registration remembered, which is how an invitation survives the round trip; then their Projects.
  *
- * Both halves are already reduced to a path on this site: `parseConfirmationLink` runs the link's through
- * `safeNext`, and `takeRememberedDestination` runs the cookie's through the same guard.
+ * Every candidate is already reduced to a path on this site — `parseConfirmationLink` runs the link's
+ * through `safeNext` and `takeRememberedDestination` runs the cookie's through the same guard — so this
+ * only has to choose between them, and says so in one line.
  */
-function onwardFrom(fromLink: string, remembered: string | null): string {
-  if (fromLink !== AUTHENTICATED_HOME) return fromLink;
-
-  return remembered ?? AUTHENTICATED_HOME;
+function onwardFrom(fromLink: string | null, remembered: string | null): string {
+  return fromLink ?? remembered ?? AUTHENTICATED_HOME;
 }

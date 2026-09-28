@@ -104,7 +104,7 @@ export function SignUpForm({
         ) : null}
       </div>
 
-      <Button type="submit" disabled={pending} className="h-11 w-full text-body-lg">
+      <Button type="submit" disabled={pending} size="field" className="w-full">
         {pending ? "Creating…" : "Sign Up"}
         <ArrowRight aria-hidden="true" />
       </Button>

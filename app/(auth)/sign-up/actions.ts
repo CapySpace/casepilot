@@ -55,7 +55,7 @@ export async function signUp(_previous: SignUpState, formData: FormData): Promis
   // Before the attempt, so it is remembered whether or not the address turns out to be new: an
   // already-registered address gets the same check-email page, and following its link should still land
   // where they were going.
-  await rememberDestination(destination);
+  await rememberDestination(destination, email);
 
   const supabase = await createClient();
   const { error } = await supabase.auth.signUp({

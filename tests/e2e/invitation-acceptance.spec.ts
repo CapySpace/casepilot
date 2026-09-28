@@ -1,10 +1,10 @@
 import { expect, test, type Page } from "@playwright/test";
 
 import { signedInUser } from "../support/clients";
-import { signInAndLand, submitSignIn } from "../support/flows";
+import { confirmationUrl, signInAndLand, submitSignIn } from "../support/flows";
 import { inviteByEmail } from "../support/invitations";
 import { createProject, projectWithMember } from "../support/projects";
-import { latestEmailTo, newEmail } from "../support/users";
+import { latestEmailTo, mintSignupToken, newEmail } from "../support/users";
 
 /**
  * Spending an invitation link.
@@ -118,6 +118,35 @@ test("somebody with no account registers, confirms, and lands back on the invita
   await expect(page).toHaveURL(new RegExp(`/projects/${project}$`));
 });
 
+test("one person's invitation is not handed to whoever confirms next on the same browser", async ({
+  page,
+}) => {
+  const anna = await signedInUser();
+  const project = await createProject(anna, "Mobile Banking App");
+  const invited = newEmail();
+  const { token } = await inviteByEmail(anna, project, invited);
+
+  // Somebody begins registering from the invitation, which remembers where to come back to…
+  await page.goto(invitationUrl(token));
+  await registerFrom(page, invited);
+  await expect(page).toHaveURL(/\/check-email/);
+
+  // …and then somebody else confirms their own registration in the same browser, as happens on a shared
+  // machine. They must not be handed the invitation: it names a Project, an inviter and an address that
+  // are none of their business, and they never held the token.
+  const stranger = await mintSignupToken();
+  await page.goto(confirmationUrl(stranger.tokenHash));
+  await expect(page).toHaveURL("/projects");
+  await expect(page.getByText("Mobile Banking App")).toHaveCount(0);
+
+  // The invitation is still waiting for the person it was remembered for.
+  const html = await latestEmailTo(invited);
+  const link = /href="([^"]*\/auth\/confirm[^"]*)"/.exec(html)?.[1];
+  await page.goto(link!.replace(/&amp;/g, "&"));
+
+  await expect(page).toHaveURL(invitationUrl(token));
+});
+
 test("a spent link says so and creates no second Membership", async ({ page }) => {
   const anna = await signedInUser();
   const peter = await signedInUser();
@@ -201,7 +230,7 @@ test("a token nobody issued says nothing about anybody", async ({ page }) => {
   await expect(page.getByText(/This invitation link is not valid/)).toBeVisible();
 });
 
-test("somebody already in the Project is taken to it rather than refused", async ({ page }) => {
+test("somebody already in the Project is told so, and given the way in", async ({ page }) => {
   const anna = await signedInUser();
   const peter = await signedInUser();
   const project = await projectWithMember(anna, peter, "Mobile Banking App");
@@ -212,7 +241,13 @@ test("somebody already in the Project is taken to it rather than refused", async
   await page.goto(invitationUrl(token));
   await page.getByRole("button", { name: /Join Mobile Banking App/ }).click();
 
+  // Said, not silently acted on: a page that quietly moves leaves somebody wondering whether they just
+  // joined something twice.
+  await expect(page.getByText("You are already a member of this project.")).toBeVisible();
+
+  await page.getByRole("link", { name: /Open Mobile Banking App/ }).click();
   await expect(page).toHaveURL(new RegExp(`/projects/${project}$`));
+
   await page.goto(`/projects/${project}/members`);
   await expect(page.getByRole("row").filter({ hasText: peter.email })).toHaveCount(1);
 });

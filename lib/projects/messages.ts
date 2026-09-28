@@ -74,8 +74,10 @@ export const projectMessages = {
    * check the link, an expired one means ask for another, a cancelled one means ask whether you should
    * be joining at all, and a spent one usually means you are already in.
    */
-  invitationNotFound:
-    "This invitation link is not valid. Check that you copied all of it, or ask for a new one.",
+  // No advice about copying the whole link: a truncated link does not match the public path pattern at
+  // all, so the proxy bounces it to sign-in and this page never sees it. What is reachable is a
+  // well-formed token nobody issued.
+  invitationNotFound: "This invitation link is not valid. Ask whoever invited you for a new one.",
 
   invitationExpired:
     "This invitation has expired. Invitations last seven days — ask whoever invited you for a new one.",

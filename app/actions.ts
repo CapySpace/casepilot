@@ -3,14 +3,14 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { safeNext } from "@/lib/auth/confirmation";
+import { safeNext } from "@/lib/auth/routes";
 import { createClient } from "@/lib/supabase/server";
 
-export async function signOut(formData?: FormData) {
+export async function signOut(formData: FormData) {
   // Where to land afterwards, when the caller has a reason to say. The invitation page does: somebody
   // holding a link addressed to a colleague needs to come back to it as the right person, not be dropped
   // on a bare sign-in form. Reduced by the same guard every other redirect uses.
-  const requested = formData ? String(formData.get("next") ?? "") : "";
+  const requested = String(formData.get("next") ?? "");
   const destination = safeNext(requested, "/sign-in");
 
   const supabase = await createClient();

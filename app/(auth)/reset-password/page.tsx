@@ -35,7 +35,7 @@ export default async function ResetPasswordPage() {
       <div className="w-full rounded-2xl border border-border bg-card p-lg text-center shadow-level-1 sm:p-xl">
         <h1 className="text-headline-md">That link cannot be used</h1>
         <p className="mt-1.5 text-body-md text-muted-foreground">{authMessages.linkExpired}</p>
-        <Button asChild className="mt-lg h-11 w-full text-body-lg">
+        <Button asChild size="field" className="mt-lg w-full">
           <Link href="/forgot-password">
             Request a new link
             <ArrowRight aria-hidden="true" />

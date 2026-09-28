@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { parseConfirmationLink, safeNext } from "@/lib/auth/confirmation";
-import { AUTHENTICATED_HOME } from "@/lib/auth/routes";
+import { parseConfirmationLink } from "@/lib/auth/confirmation";
+import { safeNext } from "@/lib/auth/routes";
 
 function parse(query: string) {
   return parseConfirmationLink(new URLSearchParams(query));
@@ -24,8 +24,10 @@ describe("parseConfirmationLink", () => {
     });
   });
 
-  it("defaults the destination to the authenticated area", () => {
-    expect(parse("token_hash=abc123&type=signup")?.next).toBe(AUTHENTICATED_HOME);
+  it("reports no destination when the link carries none", () => {
+    // Null rather than a default: the confirmation route weighs this against what registration
+    // remembered, and a default here would be indistinguishable from a link that named that same path.
+    expect(parse("token_hash=abc123&type=signup")?.next).toBeNull();
   });
 
   it("rejects a link with no token", () => {

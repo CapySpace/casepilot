@@ -1,6 +1,7 @@
 "use client";
 
 import { Check } from "lucide-react";
+import Link from "next/link";
 import { useActionState } from "react";
 
 import { FormAlert } from "@/components/form/fields";
@@ -18,19 +19,27 @@ import { acceptInvitation, type AcceptState } from "./actions";
 export function AcceptButton({ token, projectName }: { token: string; projectName: string }) {
   const [state, formAction, pending] = useActionState(acceptInvitation, {
     message: null,
+    projectId: null,
   } satisfies AcceptState);
 
   return (
     <div className="flex flex-col gap-md">
       <FormAlert message={state.message} />
 
-      <form action={formAction}>
-        <input type="hidden" name="token" value={token} />
-        <Button type="submit" disabled={pending} className="h-11 w-full text-body-lg">
-          <Check aria-hidden="true" />
-          {pending ? "Joining…" : `Join ${projectName}`}
+      {/* Somebody who was already in the Project is told so, and then given the way in. */}
+      {state.projectId !== null ? (
+        <Button asChild size="lg" className="w-full">
+          <Link href={`/projects/${state.projectId}`}>Open {projectName}</Link>
         </Button>
-      </form>
+      ) : (
+        <form action={formAction}>
+          <input type="hidden" name="token" value={token} />
+          <Button type="submit" size="lg" disabled={pending} className="w-full">
+            <Check aria-hidden="true" />
+            {pending ? "Joining…" : `Join ${projectName}`}
+          </Button>
+        </form>
+      )}
     </div>
   );
 }

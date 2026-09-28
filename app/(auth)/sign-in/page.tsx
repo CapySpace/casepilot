@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { safeNext } from "@/lib/auth/confirmation";
+import { safeNext } from "@/lib/auth/routes";
 import { messageForNotice } from "@/lib/auth/messages";
 
 import { SignInForm } from "./sign-in-form";
