@@ -9,10 +9,11 @@ import { SignOutButton } from "./_components/sign-out-button";
 /**
  * The frame around the Projects list and the create form.
  *
- * Deliberately thin. The real shell — the sidebar with its Project switcher and its navigation
- * towards Releases and Builds — belongs inside a Project, where there is something for it to show,
- * and ticket 03 builds it in the `[projectId]` layout. What a User needs *here* is to know whose
- * session is active and to be able to end it, which on a shared machine is the whole of it.
+ * Deliberately thin. The real shell — the sidebar with its Project switcher and its navigation towards
+ * Releases and Builds — belongs inside a Project, where there is something for it to show, and lives in the
+ * `[projectId]` layout. What a User needs *here* is to know whose session is active and to be able to end
+ * it, which on a shared machine is the whole of it — and, from the Stitch reference, a footer to close the
+ * page on.
  */
 export default async function ProjectsLayout({ children }: LayoutProps<"/projects">) {
   const user = await verifySession();
@@ -45,6 +46,32 @@ export default async function ProjectsLayout({ children }: LayoutProps<"/project
       <main className="mx-auto flex w-full max-w-shell flex-1 flex-col gap-lg px-md py-xl">
         {children}
       </main>
+
+      {/*
+        The Stitch Project List screen closes on a footer: the wordmark, a copyright, and a few links on the
+        right. Its three — Documentation, API Status, Compliance — go nowhere in this product, and a link
+        that goes nowhere is the empty frame the phase spec refuses, so the two pages that do exist take
+        their place. The copyright matches the one the signed-out frame already shows, rather than being a
+        second opinion about who owns this.
+      */}
+      <footer className="border-t border-border bg-card">
+        <div className="mx-auto flex max-w-shell flex-col items-center justify-between gap-xs px-md py-md text-body-sm text-muted-foreground sm:flex-row">
+          <p className="flex items-center gap-xs">
+            <span className="font-medium text-foreground">CasePilot</span>
+            <span aria-hidden="true">·</span>
+            <span>© {new Date().getFullYear()} CasePilot Technologies Inc.</span>
+          </p>
+
+          <nav aria-label="Legal" className="flex items-center gap-md">
+            <Link href="/terms" className="hover:text-foreground">
+              Terms of Service
+            </Link>
+            <Link href="/privacy" className="hover:text-foreground">
+              Privacy Policy
+            </Link>
+          </nav>
+        </div>
+      </footer>
     </div>
   );
 }
