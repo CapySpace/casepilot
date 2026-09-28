@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { Wordmark } from "@/components/wordmark";
 import { verifySession } from "@/lib/auth/dal";
 import { AUTHENTICATED_HOME } from "@/lib/auth/routes";
 
@@ -20,8 +21,11 @@ export default async function ProjectsLayout({ children }: LayoutProps<"/project
     <div className="flex min-h-full flex-1 flex-col bg-background">
       <header className="border-b border-border bg-card">
         <div className="mx-auto flex h-20 max-w-shell items-center justify-between gap-md px-md">
-          <Link href={AUTHENTICATED_HOME} className="font-heading text-title-lg font-bold">
-            CasePilot
+          <Link
+            href={AUTHENTICATED_HOME}
+            className="rounded-lg focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+          >
+            <Wordmark />
           </Link>
 
           <div className="flex min-w-0 items-center gap-md">

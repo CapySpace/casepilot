@@ -1,6 +1,8 @@
 import { Lock } from "lucide-react";
 import Link from "next/link";
 
+import { Wordmark } from "@/components/wordmark";
+
 /**
  * The frame the authentication screens share: wordmark above, trust statement and copyright below,
  * the screen's own card in the middle.
@@ -15,16 +17,16 @@ import Link from "next/link";
  *   authentication is default-deny a link to one would bounce a signed-out visitor back to
  *   sign-in — worse than no link. Ticket 04 needs both pages anyway, to record consent at
  *   registration; the links belong with them.
- * - A logo mark above the heading. The brand asset lives in the design project, not the repo, and
- *   inventing one here is not this ticket's job.
+ * - A logo mark above the heading. The brand lockup is in the header, where it identifies the product on
+ *   every screen; repeating it above each card's own heading would say the same thing twice.
  */
 export default function AuthLayout({ children }: LayoutProps<"/">) {
   return (
     <div className="flex min-h-full flex-1 flex-col">
       <header className="w-full">
         <div className="mx-auto flex h-20 max-w-shell items-center px-md">
-          <Link href="/" className="font-heading text-title-lg font-bold">
-            CasePilot
+          <Link href="/" className="rounded-lg focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50">
+            <Wordmark />
           </Link>
         </div>
       </header>

@@ -46,6 +46,24 @@ barely-there ambient shadow, never by drama. Trust here comes from precision and
 * **Dormant Grey (`#b8bfca`)** — the *Not Run* state, and the only truly desaturated accent. Signals
   "nothing has happened here yet" by visibly withholding colour.
 
+### Brand assets
+
+The artwork lives in the repository now, not only in the design project: `public/brand/casepilot-logo.png`
+is the lockup (mark plus wordmark) that `components/wordmark.tsx` renders in every header, and
+`public/brand/casepilot-mark.png` is the square mark the icons are cut from (`app/icon.png`,
+`app/apple-icon.png`, `app/favicon.ico`, by the Next.js file conventions).
+
+Sampled from the supplied artwork, the mark is teal `#03ccae` with an accent blue `#0089fd`, and the
+wordmark is navy `#022750`. **None of those three is a UI colour.** They are close to tokens that already
+exist — Signal Emerald `#00c696`, Navigational Sapphire `#005bb2`, Midnight Slate Navy `#0b1c30` — and the
+tokens remain the only source of truth for anything drawn in the interface. The asset is the source of truth
+for the logo, and the two are allowed to differ by a shade: matching them would mean either editing somebody
+else's artwork or moving a token to chase it.
+
+The lockup is drawn 44px tall, which comes from the artwork rather than from the frame: the word occupies
+about two fifths of the lockup's height, so 44px is what makes it read at the size the surrounding headings
+do. Its accessible name is "CasePilot" — what the image *says* — never "CasePilot logo".
+
 ### Brand & Primary Action
 
 * **Signal Emerald (`#00c696`)** — the brand colour. Vivid, optimistic turquoise-green reserved for the
