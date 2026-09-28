@@ -7,6 +7,7 @@ import {
 } from "@/lib/releases/limits";
 
 import { signedInUser } from "../support/clients";
+import { createBuild } from "../support/builds";
 import { signIn, signInAndLand } from "../support/flows";
 import { createProject, projectWithMember } from "../support/projects";
 import { createRelease } from "../support/releases";
@@ -168,6 +169,33 @@ test("the sidebar's Releases entry opens the list, and marks itself active there
     "aria-current",
     "page",
   );
+});
+
+test("the release list searches versions, names, descriptions, and keeps real Build counts", async ({
+  page,
+}) => {
+  const anna = await signedInUser();
+  const project = await createProject(anna, "Mobile Banking App");
+  const payments = await createRelease(anna, project, "2.4.0", {
+    name: "Payments Overhaul",
+    description: "Stripe 3DS and biometric auth.",
+  });
+  await createBuild(anna, payments, "100");
+  await createRelease(anna, project, "2.3.0", {
+    name: "Invitations",
+    description: "Multi-tenant role permissions.",
+  });
+  await signInAndLand(page, anna);
+
+  await page.goto(`/projects/${project}/releases`);
+  await page.getByLabel("Search releases").fill("stripe");
+
+  const row = page.getByRole("listitem").filter({ hasText: "2.4.0" });
+  await expect(row.getByRole("heading", { level: 2, name: "2.4.0" })).toBeVisible();
+  await expect(page.getByText("2.3.0")).toHaveCount(0);
+  await expect(row).toContainText("Payments Overhaul");
+  await expect(row).toContainText("Stripe 3DS and biometric auth.");
+  await expect(row).toContainText("1 build");
 });
 
 test.describe("what the form refuses", () => {

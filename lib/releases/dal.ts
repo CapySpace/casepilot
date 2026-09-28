@@ -18,6 +18,7 @@ export type ReleaseSummary = {
   id: string;
   version: string;
   name: string | null;
+  description: string | null;
   buildCount: number;
   createdAt: string;
 };
@@ -26,6 +27,7 @@ type ReleaseSummaryRow = {
   id: string;
   version: string;
   name: string | null;
+  description: string | null;
   created_at: string;
   /** The aggregate, counted by the database. PostgREST returns it as a single-element array. */
   builds: { count: number }[];
@@ -56,7 +58,7 @@ export const listReleases = cache(async (projectId: string): Promise<ReleaseSumm
 
   const { data, error } = await supabase
     .from("releases")
-    .select("id, version, name, created_at, builds(count)")
+    .select("id, version, name, description, created_at, builds(count)")
     .eq("project_id", projectId)
     .order("created_at", { ascending: false })
     .returns<ReleaseSummaryRow[]>();
@@ -69,6 +71,7 @@ export const listReleases = cache(async (projectId: string): Promise<ReleaseSumm
     id: release.id,
     version: release.version,
     name: release.name,
+    description: release.description,
     buildCount: buildCountOf(release),
     createdAt: release.created_at,
   }));
