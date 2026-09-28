@@ -7,21 +7,24 @@ import { Wordmark } from "@/components/wordmark";
  * The frame the authentication screens share: wordmark above, trust statement and copyright below,
  * the screen's own card in the middle.
  *
- * Two things the designs draw are deliberately not here:
+ * One thing the designs draw is deliberately not here:
  *
  * - SOC-2 and HIPAA trust badges, which sat beside the encryption statement. Removed until they can
  *   be substantiated: CasePilot should make no compliance claim it cannot back. The
  *   transport-security statement stays, because that one is simply true.
- * - A "Help & Support" link in the header. Its destination is out of scope for Phase 1.
  */
 export default function AuthLayout({ children }: LayoutProps<"/">) {
   return (
     <div className="flex min-h-full flex-1 flex-col">
       <header className="w-full">
-        <div className="mx-auto flex h-20 max-w-shell items-center px-md">
+        <div className="mx-auto flex h-20 max-w-shell items-center justify-between px-md">
           <Link href="/" className="rounded-lg focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50">
             <Wordmark />
           </Link>
+          <p className="flex items-center gap-xs text-body-sm text-muted-foreground">
+            <span className="hidden sm:inline">Need assistance? </span>
+            <span className="font-semibold text-reference">Help &amp; Support</span>
+          </p>
         </div>
       </header>
 
