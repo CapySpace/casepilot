@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 
 import { safeNext } from "@/lib/auth/routes";
 import { messageForNotice } from "@/lib/auth/messages";
+import mark from "@/public/brand/casepilot-mark.png";
 
 import { SignInForm } from "./sign-in-form";
 
@@ -29,9 +31,12 @@ export default async function SignInPage({ searchParams }: PageProps<"/sign-in">
         treatment — hairline border, Level 1 shadow — is what a card gets instead.
       */}
       <div className="mb-lg flex flex-col items-center text-center">
+        <div className="mb-sm flex size-12 items-center justify-center rounded-xl border border-border bg-secondary p-2 shadow-level-1">
+          <Image src={mark} alt="" width={32} height={32} aria-hidden="true" />
+        </div>
         <h1 className="text-headline-md">Sign in to CasePilot</h1>
         <p className="mt-1.5 text-body-md text-muted-foreground">
-          Enter your credentials to access your Projects
+          Enter your credentials to access your workspace
         </p>
       </div>
 
@@ -43,7 +48,7 @@ export default async function SignInPage({ searchParams }: PageProps<"/sign-in">
       <SignInForm key={notice ?? "none"} notice={notice} next={destination || undefined} />
 
       <div className="mt-lg border-t border-border pt-md text-center text-body-sm text-muted-foreground">
-        New to CasePilot?{" "}
+        Don&apos;t have an account?{" "}
         <Link
           href={destination ? `/sign-up?next=${encodeURIComponent(destination)}` : "/sign-up"}
           className="font-medium text-reference hover:underline"

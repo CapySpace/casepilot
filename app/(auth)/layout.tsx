@@ -7,18 +7,12 @@ import { Wordmark } from "@/components/wordmark";
  * The frame the authentication screens share: wordmark above, trust statement and copyright below,
  * the screen's own card in the middle.
  *
- * Four things the designs draw are deliberately not here:
+ * Two things the designs draw are deliberately not here:
  *
  * - SOC-2 and HIPAA trust badges, which sat beside the encryption statement. Removed until they can
  *   be substantiated: CasePilot should make no compliance claim it cannot back. The
  *   transport-security statement stays, because that one is simply true.
  * - A "Help & Support" link in the header. Its destination is out of scope for Phase 1.
- * - "Privacy Policy" and "Terms of Service" links in the footer. Neither page exists, and because
- *   authentication is default-deny a link to one would bounce a signed-out visitor back to
- *   sign-in — worse than no link. Ticket 04 needs both pages anyway, to record consent at
- *   registration; the links belong with them.
- * - A logo mark above the heading. The brand lockup is in the header, where it identifies the product on
- *   every screen; repeating it above each card's own heading would say the same thing twice.
  */
 export default function AuthLayout({ children }: LayoutProps<"/">) {
   return (
@@ -42,8 +36,22 @@ export default function AuthLayout({ children }: LayoutProps<"/">) {
         </div>
       </main>
 
-      <footer className="px-md py-lg text-center text-body-sm text-muted-foreground">
-        © {new Date().getFullYear()} CasePilot Technologies Inc.
+      <footer className="px-md py-md text-center text-body-sm text-muted-foreground">
+        <div className="mx-auto flex max-w-shell flex-col items-center justify-center gap-y-xs sm:flex-row sm:gap-x-lg">
+          <Link href="/privacy" className="transition-colors hover:text-foreground">
+            Privacy Policy
+          </Link>
+          <span className="hidden text-border sm:inline" aria-hidden="true">
+            •
+          </span>
+          <Link href="/terms" className="transition-colors hover:text-foreground">
+            Terms of Service
+          </Link>
+          <span className="hidden text-border sm:inline" aria-hidden="true">
+            •
+          </span>
+          <span>© {new Date().getFullYear()} CasePilot Technologies Inc.</span>
+        </div>
       </footer>
     </div>
   );

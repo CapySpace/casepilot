@@ -36,7 +36,7 @@ export function SignInForm({
         label="Work Email"
         icon={Mail}
         autoComplete="email"
-        placeholder="name@company.com"
+        placeholder="name@firm.com"
         defaultValue={state.email}
         required
       />
@@ -58,7 +58,12 @@ export function SignInForm({
         absent: session lifetime is uniform for everyone, taking the provider's defaults.
       */}
 
-      <Button type="submit" disabled={pending} size="field" className="w-full">
+      <Button
+        type="submit"
+        disabled={pending}
+        size="field"
+        className="w-full text-primary-foreground"
+      >
         {pending ? "Signing in…" : "Sign In"}
         <ArrowRight aria-hidden="true" />
       </Button>
