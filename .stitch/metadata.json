@@ -1,0 +1,100 @@
+{
+  "projectId": "10239226495872133651",
+  "title": "CasePilot",
+  "deviceType": "DESKTOP",
+  "projectUpdateTime": "2026-09-28T03:52:15.496167Z",
+  "lastSyncTime": "2026-09-28T04:10:09.562876Z",
+  "designTheme": {
+    "name": "Precision Velocity",
+    "headlineFont": "Plus Jakarta Sans",
+    "bodyFont": "Inter",
+    "primary": "#006c50",
+    "primaryContainer": "#00c696",
+    "secondary": "#005bb2",
+    "surfaceBright": "#f8f9ff",
+    "onSurface": "#0b1c30",
+    "error": "#ba1a1a",
+    "note": "Checked against app/globals.css at this sync: every token the repo defines matches the theme exactly. globals.css and DESIGN.md remain the source of truth for the interface; this block is a record of what the design project said, so drift is visible next time."
+  },
+  "screens": {
+    "project-list": {
+      "screenId": "5af63221abc548a6818b971c5c3f9335",
+      "label": "CasePilot - Project List",
+      "sourceScreen": "projects/10239226495872133651/screens/5af63221abc548a6818b971c5c3f9335",
+      "width": 1280,
+      "height": 834,
+      "canvasPosition": {
+        "x": 7783,
+        "y": 982
+      },
+      "html": ".stitch/designs/project-list.html",
+      "screenshot": ".stitch/designs/project-list.png",
+      "htmlSha256": "61e527c582b0ae07",
+      "implementedBy": "app/projects/page.tsx"
+    },
+    "sign-in": {
+      "screenId": "89c55544619c4129b242626813cbe646",
+      "label": "CasePilot - Sign In",
+      "sourceScreen": "projects/10239226495872133651/screens/89c55544619c4129b242626813cbe646",
+      "width": 1280,
+      "height": 731,
+      "canvasPosition": {
+        "x": 7783,
+        "y": -118
+      },
+      "html": ".stitch/designs/sign-in.html",
+      "screenshot": ".stitch/designs/sign-in.png",
+      "htmlSha256": "1f2eafb89292cfa1",
+      "implementedBy": "app/(auth)/sign-in/page.tsx"
+    },
+    "sign-up": {
+      "screenId": "6ea3f58596b3407c8551aef1ff67fd82",
+      "label": "CasePilot - Sign Up",
+      "sourceScreen": "projects/10239226495872133651/screens/6ea3f58596b3407c8551aef1ff67fd82",
+      "width": 1280,
+      "height": 894,
+      "canvasPosition": {
+        "x": 9184,
+        "y": -118
+      },
+      "html": ".stitch/designs/sign-up.html",
+      "screenshot": ".stitch/designs/sign-up.png",
+      "htmlSha256": "4028c72615a6490b",
+      "implementedBy": "app/(auth)/sign-up/page.tsx"
+    },
+    "forgot-password": {
+      "screenId": "f4688130652a4d6b86ff3c3c8ca0b707",
+      "label": "CasePilot - Forgot Password",
+      "sourceScreen": "projects/10239226495872133651/screens/f4688130652a4d6b86ff3c3c8ca0b707",
+      "width": 1280,
+      "height": 823,
+      "canvasPosition": {
+        "x": 10624,
+        "y": -123
+      },
+      "html": ".stitch/designs/forgot-password.html",
+      "screenshot": ".stitch/designs/forgot-password.png",
+      "htmlSha256": "2d091d9560854be6",
+      "implementedBy": "app/(auth)/forgot-password/page.tsx"
+    },
+    "project-releases": {
+      "screenId": "995ea989e41942fcbd426177db942a5c",
+      "label": "CasePilot - Project Releases",
+      "sourceScreen": "projects/10239226495872133651/screens/995ea989e41942fcbd426177db942a5c",
+      "width": 1280,
+      "height": 1024,
+      "canvasPosition": {
+        "x": 9266,
+        "y": 904
+      },
+      "html": ".stitch/designs/project-releases.html",
+      "screenshot": ".stitch/designs/project-releases.png",
+      "htmlSha256": "91dfd426c4aebcea",
+      "implementedBy": null
+    }
+  },
+  "hiddenOnCanvas": {
+    "ee86c84eebb543108ecb18951b5ea1be": "CasePilot - Dashboard (Sidebar Layout) \u2014 the screen DESIGN.md says it was verified against. It is hidden on the canvas, so list_screens does not return it; it has not been deleted.",
+    "10978221924824497242": "A second, hidden instance of Project List."
+  }
+}
