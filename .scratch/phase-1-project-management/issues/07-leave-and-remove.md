@@ -84,3 +84,25 @@ what matters is that it is drawn on purpose.
 column, so "the last cell" was no longer the Joined cell — that assertion now finds the cell by what it
 contains. And cancelling an Invitation now asks first, so ticket 05's cancellation test presses through the
 dialog.
+
+**What the spec review changed.** The worst of it reported the opposite of what the database did:
+
+- **A refused delete looked like a success.** PostgREST returns no error for a delete that row-level security
+  reduces to nothing, so an Owner posting straight at the leave action was redirected to their Projects as
+  though they had left one they are still in. Both actions now `.select()` the deleted rows and treat none as
+  a refusal — and an Owner who posts anyway gets `ownerCannotLeave`, which is the reason rather than a shrug.
+- **Removal revalidated one of the three pages that count people.** The Owner's own Projects list and the
+  Project overview kept the old number. A test now walks all three after a removal.
+- **A failure took the control away with it.** `RemoveMember` replaced itself with the error message, so the
+  only way to try again was to reload — contradicting this ticket's own comment about why the message exists.
+- **The invariant check depended on what the caller could see.** `refuse_to_orphan_project` runs as the
+  invoking role by default, so its "does this Project still exist" test was subject to that role's policies:
+  a caller for whom the Project is invisible would be told there is nothing to protect. It is
+  `security definer` now. Unreachable today, and a hole the moment ownership can move.
+- **`sr-only` on a `th` lifts the cell out of the row**, because it is absolutely positioned, while the body
+  rows keep theirs. The label hides; the cell stays.
+
+**Not covered by a test, and said rather than hidden:** the two "refused delete reports a failure" paths are
+only reachable by posting directly at a Server Action, which no browser test can drive and which the RLS
+suite covers from the other side — it proves the database refuses. The action's *reporting* of that refusal
+is reasoned, not observed.

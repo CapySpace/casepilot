@@ -78,9 +78,14 @@ export default async function ProjectMembersPage({ params }: PageProps<"/project
                   would drop the column 127px early, the same mistake the sidebar's breakpoint token
                   exists to avoid. */}
               <HeaderCell className="hidden md:table-cell">Joined</HeaderCell>
-              {/* No visible label: the column holds one control per row, each named for the person it acts
-                  on. A "Remove" heading would be read before every one of them. */}
-              {owner && <HeaderCell className="sr-only">Actions</HeaderCell>}
+              {/* The label hides, not the cell: `sr-only` is absolutely positioned, so putting it on the
+                  `th` would lift the header cell out of a row whose body cells stay put. The column holds
+                  one control per row, each named for the person it acts on. */}
+              {owner && (
+                <HeaderCell>
+                  <span className="sr-only">Actions</span>
+                </HeaderCell>
+              )}
             </tr>
           </thead>
           <tbody>

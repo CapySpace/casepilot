@@ -29,26 +29,27 @@ export function RemoveMember({
     message: null,
   } satisfies RemoveState);
 
-  // After a successful removal the row is gone, so this only ever renders a failure.
-  if (state.message) {
-    return <p className="text-body-sm text-destructive">{state.message}</p>;
-  }
-
+  // After a successful removal the row is gone, so a message here is always a failure — and a failure has to
+  // leave the control standing, or the only way to try again is to reload the page.
   return (
-    <ConfirmAction
-      trigger={
-        <Button variant="ghost" size="sm" aria-label={`Remove ${name}`}>
-          <UserMinus aria-hidden="true" />
-          Remove
-        </Button>
-      }
-      title={projectMessages.removeTitle(name)}
-      description={projectMessages.removeDescription(name)}
-      confirmLabel={projectMessages.removeConfirm}
-      action={formAction}
-    >
-      <input type="hidden" name="projectId" value={projectId} />
-      <input type="hidden" name="userId" value={userId} />
-    </ConfirmAction>
+    <div className="flex flex-col items-end gap-2xs">
+      {state.message && <p className="text-body-sm text-destructive">{state.message}</p>}
+
+      <ConfirmAction
+        trigger={
+          <Button variant="ghost" size="sm" aria-label={`Remove ${name}`}>
+            <UserMinus aria-hidden="true" />
+            Remove
+          </Button>
+        }
+        title={projectMessages.removeTitle(name)}
+        description={projectMessages.removeDescription(name)}
+        confirmLabel={projectMessages.removeConfirm}
+        action={formAction}
+      >
+        <input type="hidden" name="projectId" value={projectId} />
+        <input type="hidden" name="userId" value={userId} />
+      </ConfirmAction>
+    </div>
   );
 }

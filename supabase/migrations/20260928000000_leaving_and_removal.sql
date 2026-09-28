@@ -27,9 +27,14 @@ create policy "Owners can remove a Member"
 -- The cascade from deleting a Project is *not* this: Postgres removes the parent row before the referential
 -- action fires, so by the time this runs the Project is already gone and there is no ownership left to
 -- protect. That is what the existence check distinguishes, and `tests/rls/invitations.test.ts` covers it.
+-- `security definer` because the check must not depend on what the caller can see. A trigger runs as the
+-- invoking role by default, so the existence test would be subject to that role's policies — and a caller
+-- for whom the Project is invisible would be told there is no Project to protect, which is the opposite of
+-- the truth. Unreachable today, and a hole the moment ownership can move.
 create function public.refuse_to_orphan_project()
 returns trigger
 language plpgsql
+security definer
 set search_path = ''
 as $$
 begin

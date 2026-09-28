@@ -190,18 +190,30 @@ export async function removeFromProject(
 
   const userId = String(formData.get("userId") ?? "");
   const supabase = await createClient();
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("project_members")
     .delete()
     .eq("project_id", projectId)
-    .eq("user_id", userId);
+    .eq("user_id", userId)
+    .select("id");
 
   if (error) {
     console.error(`Could not remove User ${userId} from Project ${projectId}`, error);
     return { message: projectMessages.couldNotRemove };
   }
 
-  revalidatePath(`/projects/${projectId}/members`);
+  // A delete the policies reduce to nothing returns no error, so the rows are what say whether anything
+  // happened. Without this, an Owner aiming at their own row — which no policy admits — would be told it
+  // worked.
+  if ((data ?? []).length === 0) {
+    console.error(`Removing User ${userId} from Project ${projectId} was refused`);
+    return { message: projectMessages.couldNotRemove };
+  }
+
+  // Three places show how many people are in a Project: this list, the overview in the layout above it, and
+  // the Projects list. Revalidating only this one leaves the other two claiming the old number.
+  revalidatePath(`/projects/${projectId}`, "layout");
+  revalidatePath("/projects");
 
   return { message: null };
 }

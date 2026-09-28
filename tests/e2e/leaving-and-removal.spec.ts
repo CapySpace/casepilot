@@ -70,6 +70,15 @@ test("an Owner removes a Member, after being asked", async ({ browser, page }) =
   await expect(page.getByRole("row").filter({ hasText: peter.email })).toHaveCount(0);
   await expect(page.getByText("1 member of Mobile Banking App")).toBeVisible();
 
+  // And everywhere else that counts people, because three pages do and only one of them was revalidated
+  // until this test existed.
+  await page.goto(`/projects/${project}`);
+  await expect(page.getByText("1 member")).toBeVisible();
+  await page.goto("/projects");
+  await expect(
+    page.getByRole("listitem").filter({ hasText: "Mobile Banking App" }),
+  ).toContainText("1 member");
+
   // Immediately, for them, in their own browser.
   const theirs = await browser.newContext();
   const theirPage = await theirs.newPage();
