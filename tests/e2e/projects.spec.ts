@@ -96,6 +96,29 @@ test("the list is alphabetical, however the Projects arrived", async ({ page }) 
   ]);
 });
 
+test("the toolbar filters Projects by search text and relationship", async ({ page }) => {
+  const anna = await signedInUser();
+  const peter = await signedInUser();
+  await createProject(anna, "Alpha Centauri");
+  await createProject(anna, "Billing Console");
+  await projectWithMember(peter, anna, "Shared Gateway");
+
+  await signInAndLand(page, anna);
+
+  await page.getByLabel("Filter projects").fill("billing");
+  await expect(page.getByRole("heading", { level: 2 })).toHaveText(["Billing Console"]);
+
+  await page.getByLabel("Filter projects").fill("");
+  await page.getByRole("button", { name: "Shared (1)" }).click();
+  await expect(page.getByRole("heading", { level: 2 })).toHaveText(["Shared Gateway"]);
+
+  await page.getByRole("button", { name: "Owned by me (2)" }).click();
+  await expect(page.getByRole("heading", { level: 2 })).toHaveText([
+    "Alpha Centauri",
+    "Billing Console",
+  ]);
+});
+
 test("another User's Projects are nowhere on the list", async ({ page }) => {
   const anna = await signedInUser();
   const peter = await signedInUser();

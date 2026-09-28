@@ -1,3 +1,4 @@
+import { Bell, Settings } from "lucide-react";
 import Link from "next/link";
 
 import { Wordmark } from "@/components/wordmark";
@@ -17,11 +18,12 @@ import { SignOutButton } from "./_components/sign-out-button";
  */
 export default async function ProjectsLayout({ children }: LayoutProps<"/projects">) {
   const user = await verifySession();
+  const initial = user.email[0]?.toLocaleUpperCase() ?? "U";
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-background">
-      <header className="border-b border-border bg-card">
-        <div className="mx-auto flex h-20 max-w-shell items-center justify-between gap-md px-md">
+      <header className="border-b border-border bg-card/95 backdrop-blur-md">
+        <div className="mx-auto flex h-16 max-w-shell items-center justify-between gap-md px-md">
           <Link
             href={AUTHENTICATED_HOME}
             className="rounded-lg focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
@@ -30,20 +32,40 @@ export default async function ProjectsLayout({ children }: LayoutProps<"/project
           </Link>
 
           <div className="flex min-w-0 items-center gap-md">
+            <div className="hidden items-center gap-xs text-muted-foreground sm:flex" aria-hidden="true">
+              <span className="flex size-8 items-center justify-center rounded-lg transition-colors hover:bg-muted">
+                <Bell className="size-4" />
+              </span>
+              <span className="flex size-8 items-center justify-center rounded-lg transition-colors hover:bg-muted">
+                <Settings className="size-4" />
+              </span>
+            </div>
+
             {/*
               Named at every width, not hidden on a phone. Phase 1's criterion is that whoever is
               signed in is obvious on a shared machine, and a shared machine is often a phone — so a
               long address truncates rather than disappearing.
             */}
-            <span className="truncate font-mono text-body-sm text-muted-foreground">
-              {user.email}
-            </span>
+            <div className="flex min-w-0 items-center gap-xs">
+              <span
+                className="flex size-9 shrink-0 items-center justify-center rounded-full bg-secondary font-heading text-body-md font-semibold text-secondary-foreground"
+                aria-hidden="true"
+              >
+                {initial}
+              </span>
+              <span className="flex min-w-0 flex-col leading-tight">
+                <span className="text-body-sm font-semibold text-foreground">Signed in</span>
+                <span className="truncate font-mono text-body-sm text-muted-foreground">
+                  {user.email}
+                </span>
+              </span>
+            </div>
             <SignOutButton />
           </div>
         </div>
       </header>
 
-      <main className="mx-auto flex w-full max-w-shell flex-1 flex-col gap-lg px-md py-xl">
+      <main className="mx-auto flex w-full max-w-shell flex-1 flex-col gap-lg px-md py-lg">
         {children}
       </main>
 
