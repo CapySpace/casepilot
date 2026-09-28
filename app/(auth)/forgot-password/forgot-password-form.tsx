@@ -1,12 +1,14 @@
 "use client";
 
 import { ArrowLeft, ArrowRight, Mail, MailCheck } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useActionState } from "react";
 
 import { Button } from "@/components/ui/button";
 
 import { authMessages } from "@/lib/auth/messages";
+import mark from "@/public/brand/casepilot-mark.png";
 
 import { FormAlert, TextField } from "@/components/form/fields";
 import { requestPasswordReset, type ForgotPasswordState } from "./actions";
@@ -58,10 +60,13 @@ export function ForgotPasswordForm() {
   return (
     <>
       <div className="mb-lg flex flex-col items-center text-center">
+        <div className="mb-sm flex size-12 items-center justify-center rounded-xl border border-border bg-secondary p-2 shadow-level-1">
+          <Image src={mark} alt="" width={32} height={32} aria-hidden="true" />
+        </div>
         <h1 className="text-headline-md">Reset your password</h1>
         <p className="mt-1.5 text-body-md text-muted-foreground">
-          Enter the email address you use for CasePilot and we will send you a link to choose a new
-          password.
+          Enter the email associated with your CasePilot account and we&apos;ll send you instructions to
+          reset your password.
         </p>
       </div>
 
@@ -75,13 +80,18 @@ export function ForgotPasswordForm() {
           label="Work Email"
           icon={Mail}
           autoComplete="email"
-          placeholder="name@company.com"
+          placeholder="name@firm.com"
           defaultValue={state.email}
           error={state.error ?? undefined}
         />
 
-        <Button type="submit" disabled={pending} size="field" className="w-full">
-          {pending ? "Sending…" : "Send reset link"}
+        <Button
+          type="submit"
+          disabled={pending}
+          size="field"
+          className="w-full text-primary-foreground"
+        >
+          {pending ? "Sending…" : "Send Reset Link"}
           <ArrowRight aria-hidden="true" />
         </Button>
       </form>

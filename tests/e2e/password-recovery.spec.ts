@@ -20,7 +20,7 @@ function recoveryUrl(tokenHash: string) {
 async function requestReset(page: Page, email: string) {
   await page.goto("/forgot-password");
   await page.getByLabel("Work Email").fill(email);
-  await page.getByRole("button", { name: "Send reset link" }).click();
+  await page.getByRole("button", { name: "Send Reset Link" }).click();
 }
 
 async function chooseNewPassword(page: Page, password: string, confirmation = password) {
