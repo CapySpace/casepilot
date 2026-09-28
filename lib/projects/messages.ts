@@ -96,6 +96,42 @@ export const projectMessages = {
 
   couldNotAccept: "Something went wrong accepting the invitation. You have not been added.",
 
+  /** Leaving: the question, and what it costs. Said before, not after. */
+  leaveTitle: "Leave this project?",
+
+  leaveDescription:
+    "You will lose access to its test cases, builds and results. Someone in the project can invite you back.",
+
+  leaveConfirm: "Leave project",
+
+  couldNotLeave: "Something went wrong leaving the project. You are still a member.",
+
+  /** Why an Owner has no Leave control, said where they would have looked for one. */
+  ownerCannotLeave:
+    "As the owner you cannot leave this project. Transferring ownership and deleting a project both arrive in a later phase.",
+
+  /** Removing somebody: named, because removing the wrong colleague is the mistake worth preventing. */
+  removeTitle(name: string) {
+    return `Remove ${name}?`;
+  },
+
+  removeDescription(name: string) {
+    return `${name} will lose access to this project immediately. You can invite them again afterwards.`;
+  },
+
+  removeConfirm: "Remove from project",
+
+  couldNotRemove: "Something went wrong removing them. Nothing has changed.",
+
+  /** Cancelling an Invitation, which ticket 05 built and deferred the question to this ticket. */
+  cancelInvitationTitle: "Cancel this invitation?",
+
+  cancelInvitationDescription(email: string) {
+    return `The link sent to ${email} will stop working. You can invite them again at any time.`;
+  },
+
+  cancelInvitationConfirm: "Cancel invitation",
+
   /** Said after a save that worked, because a form that goes quiet leaves the User guessing. */
   projectUpdated: "Project updated.",
 

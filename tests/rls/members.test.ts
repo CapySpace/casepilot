@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import { hashInvitationToken } from "@/lib/projects/invitation-token";
+
 import { adminClient, anonymousClient, signedInUser } from "../support/clients";
 import { attemptInvite, inviteByEmail } from "../support/invitations";
 import { createProject, projectWithMember } from "../support/projects";
@@ -114,20 +116,21 @@ describe("a Member who is not the Owner", () => {
     expect(data).toEqual({ role: "member" });
   });
 
-  it("cannot remove anybody, including themselves", async () => {
+  it("can remove only themselves, however widely they ask", async () => {
     const anna = await signedInUser();
     const peter = await signedInUser();
     const project = await projectWithMember(anna, peter);
 
-    // Leaving is ticket 07's feature, and until it exists no delete policy does — so the database
-    // refuses every deletion, which is the safe direction for an omission to fail in.
+    // A deletion aimed at the whole Project takes exactly one row with it: leaving is a Member's to do,
+    // and removing anybody else is not. The policy decides that row by row, so the breadth of the request
+    // makes no difference.
     await peter.client.from("project_members").delete().eq("project_id", project);
 
     const { data } = await anna.client
       .from("project_members")
       .select("user_id")
       .eq("project_id", project);
-    expect(data).toHaveLength(2);
+    expect(data).toEqual([{ user_id: anna.id }]);
   });
 });
 
@@ -150,5 +153,120 @@ describe("a Project's single Owner", () => {
 
     expect(error?.code).toBe("23505");
     expect(error?.message).toContain("project_members_one_owner");
+  });
+});
+
+describe("leaving and removing", () => {
+  it("lets a Member delete their own Membership", async () => {
+    const anna = await signedInUser();
+    const peter = await signedInUser();
+    const project = await projectWithMember(anna, peter);
+
+    const { error } = await peter.client
+      .from("project_members")
+      .delete()
+      .eq("project_id", project)
+      .eq("user_id", peter.id);
+
+    expect(error).toBeNull();
+
+    // Access ended with the Membership: it is what made the Project visible in the first place.
+    const { data: projects } = await peter.client.from("projects").select("id");
+    expect(projects).toEqual([]);
+
+    const { data: remaining } = await anna.client
+      .from("project_members")
+      .select("user_id")
+      .eq("project_id", project);
+    expect(remaining).toEqual([{ user_id: anna.id }]);
+  });
+
+  it("does not let a Member remove anybody else", async () => {
+    const anna = await signedInUser();
+    const peter = await signedInUser();
+    const project = await projectWithMember(anna, peter);
+
+    await peter.client
+      .from("project_members")
+      .delete()
+      .eq("project_id", project)
+      .eq("user_id", anna.id);
+
+    const { data } = await anna.client
+      .from("project_members")
+      .select("user_id")
+      .eq("project_id", project);
+    expect(data).toHaveLength(2);
+  });
+
+  it("lets an Owner remove a Member", async () => {
+    const anna = await signedInUser();
+    const peter = await signedInUser();
+    const project = await projectWithMember(anna, peter);
+
+    const { error } = await anna.client
+      .from("project_members")
+      .delete()
+      .eq("project_id", project)
+      .eq("user_id", peter.id);
+
+    expect(error).toBeNull();
+    const { data: projects } = await peter.client.from("projects").select("id");
+    expect(projects).toEqual([]);
+  });
+
+  it("does not let an Owner remove themselves", async () => {
+    const anna = await signedInUser();
+    const peter = await signedInUser();
+    const project = await projectWithMember(anna, peter);
+
+    // No policy admits it, so nothing happens — which is the same answer the interface gives by having no
+    // Leave control for an Owner.
+    await anna.client
+      .from("project_members")
+      .delete()
+      .eq("project_id", project)
+      .eq("user_id", anna.id);
+
+    const { data } = await anna.client
+      .from("project_members")
+      .select("role")
+      .eq("project_id", project)
+      .eq("user_id", anna.id)
+      .maybeSingle();
+    expect(data).toEqual({ role: "owner" });
+  });
+
+  it("refuses to leave a Project with no Owner, even for an administrator", async () => {
+    const anna = await signedInUser();
+    const project = await createProject(anna);
+
+    // Row-level security is not the guard here: a Project without an Owner is nobody's to manage and
+    // nothing can transfer ownership yet, so the database refuses it whoever asks.
+    const { error } = await adminClient()
+      .from("project_members")
+      .delete()
+      .eq("project_id", project)
+      .eq("role", "owner");
+
+    expect(error?.message).toContain("last owner");
+  });
+
+  it("lets a removed User be invited again", async () => {
+    const anna = await signedInUser();
+    const peter = await signedInUser();
+    const project = await projectWithMember(anna, peter);
+    await anna.client
+      .from("project_members")
+      .delete()
+      .eq("project_id", project)
+      .eq("user_id", peter.id);
+
+    const { token } = await inviteByEmail(anna, project, peter.email);
+    const { data } = await peter.client.rpc("accept_invitation", {
+      p_token_hash: hashInvitationToken(token),
+    });
+
+    expect(data).toEqual([{ project_id: project, outcome: "accepted" }]);
   });
 });

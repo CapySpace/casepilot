@@ -2,6 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { requireProjectMembership } from "@/lib/projects/dal";
 import { projectMessages } from "@/lib/projects/messages";
 
+import { LeaveProject } from "./leave-project";
 import { ProjectSettingsForm } from "./project-settings-form";
 
 /**
@@ -10,8 +11,9 @@ import { ProjectSettingsForm } from "./project-settings-form";
  * An Owner gets the form. A Member gets the reason they do not, naming the Owner as the person who
  * can — not a disabled form, because a control you cannot use is worse than one that is not there.
  *
- * Leaving a Project belongs here too, and arrives with ticket 07. That is what gives a Member a reason
- * to open this page at all.
+ * Leaving belongs here too, which is what gives a Member a reason to open this page at all. An Owner is
+ * told why they have no Leave control rather than shown a disabled one — the reason is the useful part, and
+ * it names what would have to exist first.
  */
 export default async function ProjectSettingsPage({ params }: PageProps<"/projects/[projectId]">) {
   const { projectId } = await params;
@@ -46,6 +48,21 @@ export default async function ProjectSettingsPage({ params }: PageProps<"/projec
                 </dd>
               </dl>
             </div>
+          )}
+        </CardContent>
+      </Card>
+      <Card className="max-w-reading">
+        <CardHeader>
+          <CardTitle>Leaving</CardTitle>
+          <CardDescription>
+            Membership is what makes a project visible to you. Leaving ends that.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {project.role === "owner" ? (
+            <p className="text-body-md text-muted-foreground">{projectMessages.ownerCannotLeave}</p>
+          ) : (
+            <LeaveProject projectId={project.id} />
           )}
         </CardContent>
       </Card>

@@ -28,14 +28,16 @@ test("everybody in the Project is listed, to everybody in the Project", async ({
   await expect(owner).toContainText(anna.fullName);
   await expect(owner).toContainText("Owner");
   // The Joined *cell*, and visibly. Asserting on the row would pass on the copy of the date that the
-  // narrow-screen layout keeps hidden inside the name cell, which is not the column under test.
-  await expect(owner.getByRole("cell").last()).toBeVisible();
-  await expect(owner.getByRole("cell").last()).toHaveText(joined);
+  // narrow-screen layout keeps hidden inside the name cell, which is not the column under test. Found by
+  // what it contains, because the Owner's view has a trailing actions column and "the last cell" moved.
+  const joinedCell = owner.getByRole("cell").filter({ hasText: joined });
+  await expect(joinedCell).toBeVisible();
+  await expect(joinedCell).toHaveText(joined);
 
   const member = page.getByRole("row").filter({ hasText: peter.email });
   await expect(member).toContainText(peter.fullName);
   await expect(member).toContainText("Member");
-  await expect(member.getByRole("cell").last()).toHaveText(joined);
+  await expect(member.getByRole("cell").filter({ hasText: joined })).toHaveText(joined);
 
   // Not an Owner-only page: the colleague who was invited sees the same list.
   const theirContext = await browser.newContext();

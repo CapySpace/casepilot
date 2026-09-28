@@ -11,6 +11,7 @@ import {
 import { RoleLabel } from "../../_components/role-label";
 import { InviteForm } from "./_components/invite-form";
 import { PendingInvitations } from "./_components/pending-invitations";
+import { RemoveMember } from "./_components/remove-member";
 
 /**
  * Who is in this Project.
@@ -45,6 +46,7 @@ export default async function ProjectMembersPage({ params }: PageProps<"/project
   // rows, so a Member's read comes back empty on its own — and the page not deciding is the point: "a
   // page that filters is a page that can forget to".
   const invitations = await listPendingInvitations(projectId);
+  const owner = project.role === "owner";
 
   return (
     <>
@@ -76,6 +78,9 @@ export default async function ProjectMembersPage({ params }: PageProps<"/project
                   would drop the column 127px early, the same mistake the sidebar's breakpoint token
                   exists to avoid. */}
               <HeaderCell className="hidden md:table-cell">Joined</HeaderCell>
+              {/* No visible label: the column holds one control per row, each named for the person it acts
+                  on. A "Remove" heading would be read before every one of them. */}
+              {owner && <HeaderCell className="sr-only">Actions</HeaderCell>}
             </tr>
           </thead>
           <tbody>
@@ -105,13 +110,26 @@ export default async function ProjectMembersPage({ params }: PageProps<"/project
                 >
                   {formatDay(person.joinedAt)}
                 </td>
+                {owner && (
+                  <td className={`${CELL} align-top text-right`}>
+                    {/* Not on their own row: an Owner cannot remove themselves, and the database refuses it
+                        as well — see the policies in the leaving migration. */}
+                    {person.role === "owner" ? null : (
+                      <RemoveMember
+                        projectId={project.id}
+                        userId={person.userId}
+                        name={person.fullName}
+                      />
+                    )}
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>
         </table>
       </Card>
 
-      {project.role === "owner" && (
+      {owner && (
         <>
           <Card className="max-w-reading">
             <CardHeader>

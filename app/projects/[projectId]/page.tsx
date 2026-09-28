@@ -44,9 +44,8 @@ export default async function ProjectOverviewPage({
           </CardDescription>
         </CardHeader>
         <CardContent className="text-body-md text-muted-foreground">
-          {/* Says what is coming, without telling anybody to press something that is not there. */}
-          Inviting colleagues arrives with the next ticket; the people already here are on the members
-          page.
+          {/* Everything this sentence points at now exists, which is the phase being finished. */}
+          Invite the colleagues who will be testing with you from the members page.
         </CardContent>
       </Card>
     </>

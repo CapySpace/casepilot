@@ -26,15 +26,61 @@ alongside the policies it already exercises.
 
 **Status:** ready-for-agent
 
-- [ ] A Member can leave from Settings, after confirming in a dialog
-- [ ] Leaving returns them to `/projects` and the Project is gone from the list
-- [ ] After leaving, the Project's URL returns the same 404 a non-member gets
-- [ ] An Owner sees no Leave control, and the database refuses removal of the last `owner` Membership even when asked directly
-- [ ] An Owner can remove a Member from the Members list, after confirming in a dialog
-- [ ] Cancelling an Invitation confirms in the same dialog — ticket 05 built the control and deferred its confirmation to this ticket, which is where the component arrives
-- [ ] A removed Member loses access immediately: the Project leaves their list and its URL 404s
-- [ ] A Member cannot remove anybody, refused by the database as well as absent from the interface
-- [ ] A removed Member can be invited again and accept normally
-- [ ] Every user-facing string in the phase comes from `lib/projects/messages.ts`, with a sensible fallback for anything unrecognised
-- [ ] The direct-API suite covers a Member attempting to delete another's Membership, and an Owner attempting to delete their own
-- [ ] Browser tests cover leaving, removal, the absence of both controls for the Role that may not use them, and re-invitation after removal
+- [x] A Member can leave from Settings, after confirming in a dialog
+- [x] Leaving returns them to `/projects` and the Project is gone from the list
+- [x] After leaving, the Project's URL returns the same 404 a non-member gets
+- [x] An Owner sees no Leave control, and the database refuses removal of the last `owner` Membership even when asked directly
+- [x] An Owner can remove a Member from the Members list, after confirming in a dialog
+- [x] Cancelling an Invitation confirms in the same dialog — ticket 05 built the control and deferred its confirmation to this ticket, which is where the component arrives
+- [x] A removed Member loses access immediately: the Project leaves their list and its URL 404s
+- [x] A Member cannot remove anybody, refused by the database as well as absent from the interface
+- [x] A removed Member can be invited again and accept normally
+- [x] Every user-facing string in the phase comes from `lib/projects/messages.ts`, with a sensible fallback for anything unrecognised
+- [x] The direct-API suite covers a Member attempting to delete another's Membership, and an Owner attempting to delete their own
+- [x] Browser tests cover leaving, removal, the absence of both controls for the Role that may not use them, and re-invitation after removal
+
+## Comments
+
+**The "Owner cannot leave" invariant is a trigger, not a policy.** Two delete policies do the ordinary work
+— a Member may delete their own Membership while it is not the owner row, an Owner may delete anybody's but
+their own — and neither can be the whole answer, because the service role bypasses row-level security. So
+`refuse_to_orphan_project` refuses the deletion of an owner Membership whoever asks, and the RLS suite proves
+it through the administrative client.
+
+That trigger had to tell one case apart: **deleting a Project cascades to its Memberships**, and refusing
+that would make Projects undeletable before anything can delete one. Postgres removes the parent row before
+the referential action fires, so the trigger checks whether the Project still exists — if it does not, there
+is no ownership left to protect. Ticket 01's cascade test is what holds that distinction in place.
+
+**`shadcn add alert-dialog` could not be used.** It insists on overwriting `button.tsx`, which carries this
+repo's theme and the `field` size added in ticket 06. The component is hand-written on the `radix-ui`
+primitive the repo already depends on, so focus trapping, Escape, the `alertdialog` role and the
+title/description association are the primitive's rather than mine, with DESIGN.md's modal treatment
+(`rounded-3xl`, Level 3) on top.
+
+**The confirmation needs JavaScript, and that is the documented trade.** The phase spec recorded it before
+any of this was built: opening a dialog cannot degrade, so a destructive action's *question* does not appear
+without the client bundle. The mutation behind it is still a plain form post. The alternative — a
+confirmation page per action — is three more routes and a navigation each, and DESIGN.md specifies modals
+for exactly this.
+
+**Cancel is first in the markup**, so a keyboard reaches the safe answer before the destructive one.
+
+**A success message with nowhere to live was removed rather than displayed.** Removal returned "X no longer
+has access", into a component that unmounts with the row it just removed — so nobody could ever read it, and
+an unreadable string is the dead-copy failure ticket 05's review caught. The row disappearing, and the count
+above the table with it, is what a successful removal looks like. `couldNotRemove` stays, because a *failure*
+leaves the row in place to show it.
+
+**How the "every string from the catalogue" criterion was read.** Both message modules state their own scope:
+what tells a User the outcome or state of something they attempted belongs in the catalogue; the words that
+name a screen or a control do not. Every message of the first kind in this phase comes from
+`lib/projects/messages.ts`, and every action has an explicit message for a failure it does not recognise.
+Headings, field labels, button text and empty-state prose remain in the interface — including the dialog's
+"Keep things as they are", which is a control. A reviewer who wants that line drawn elsewhere can move it;
+what matters is that it is drawn on purpose.
+
+**Two earlier tests changed with this ticket, both legitimately.** The Members list gained a trailing actions
+column, so "the last cell" was no longer the Joined cell — that assertion now finds the cell by what it
+contains. And cancelling an Invitation now asks first, so ticket 05's cancellation test presses through the
+dialog.

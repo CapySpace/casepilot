@@ -160,3 +160,48 @@ export async function cancelInvitation(
 
   return { message: null, notice: projectMessages.invitationCancelled };
 }
+
+export type RemoveState = {
+  /**
+   * A failure, and only a failure.
+   *
+   * There is no success message, because there would be nowhere to put one: removal takes the row away, and
+   * with it the component that would have displayed it. The row's absence and the count above the table are
+   * what say it worked.
+   */
+  message: string | null;
+};
+
+/**
+ * Removing somebody from a Project.
+ *
+ * The Membership is the access, so deleting it is the whole of removal and it takes effect at once: the
+ * Project leaves their list and its URL answers 404, because row-level security has nothing left to match.
+ *
+ * An Owner cannot remove themselves this way — the policy excludes their own row, which is what stops
+ * "remove" being a way to do what "leave" refuses — and no Member can remove anybody.
+ */
+export async function removeFromProject(
+  _previous: RemoveState,
+  formData: FormData,
+): Promise<RemoveState> {
+  const projectId = String(formData.get("projectId") ?? "");
+  await requireProjectOwnership(projectId);
+
+  const userId = String(formData.get("userId") ?? "");
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("project_members")
+    .delete()
+    .eq("project_id", projectId)
+    .eq("user_id", userId);
+
+  if (error) {
+    console.error(`Could not remove User ${userId} from Project ${projectId}`, error);
+    return { message: projectMessages.couldNotRemove };
+  }
+
+  revalidatePath(`/projects/${projectId}/members`);
+
+  return { message: null };
+}

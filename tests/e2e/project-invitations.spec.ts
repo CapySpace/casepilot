@@ -149,8 +149,10 @@ test("cancelling an Invitation stops its link working", async ({ page }) => {
   await page
     .getByRole("listitem")
     .filter({ hasText: peter.email })
-    .getByRole("button", { name: "Cancel" })
+    .getByRole("button", { name: new RegExp(`Cancel the invitation to ${peter.email}`) })
     .click();
+  // Behind a confirmation since ticket 07, like the other two destructive actions.
+  await page.getByRole("button", { name: "Cancel invitation" }).click();
 
   await expect(page.getByText(/Invitation cancelled/)).toBeVisible();
   await expect(page.getByRole("listitem").filter({ hasText: peter.email })).toHaveCount(0);

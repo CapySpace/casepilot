@@ -7,15 +7,17 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { formatDay } from "@/lib/dates";
 import type { PendingInvitation } from "@/lib/projects/dal";
+import { projectMessages } from "@/lib/projects/messages";
 
+import { ConfirmAction } from "../../../_components/confirm-action";
 import { cancelInvitation, type CancelState } from "../actions";
 
 /**
  * The Invitations still waiting, and the Owner's one control over them.
  *
- * Cancelling has no confirmation step. It is the least destructive of the phase's three destructive
- * actions — the address can simply be invited again — and the dialog the others use arrives with ticket
- * 07, which is where it gains one.
+ * Cancelling asks first, like the other two destructive actions. Ticket 05 built the control and deferred
+ * the question to this ticket, which is where the dialog arrived; the address can be invited again
+ * immediately, but a link somebody is about to follow is still worth one press of confirmation.
  */
 export function PendingInvitations({
   projectId,
@@ -70,14 +72,21 @@ export function PendingInvitations({
                 </span>
               </div>
 
-              <form action={formAction}>
+              <ConfirmAction
+                trigger={
+                  <Button variant="ghost" size="sm" aria-label={`Cancel the invitation to ${invitation.email}`}>
+                    <X aria-hidden="true" />
+                    Cancel
+                  </Button>
+                }
+                title={projectMessages.cancelInvitationTitle}
+                description={projectMessages.cancelInvitationDescription(invitation.email)}
+                confirmLabel={projectMessages.cancelInvitationConfirm}
+                action={formAction}
+              >
                 <input type="hidden" name="projectId" value={projectId} />
                 <input type="hidden" name="invitationId" value={invitation.id} />
-                <Button type="submit" variant="ghost" size="sm">
-                  <X aria-hidden="true" />
-                  Cancel
-                </Button>
-              </form>
+              </ConfirmAction>
             </li>
           ))}
         </ul>
