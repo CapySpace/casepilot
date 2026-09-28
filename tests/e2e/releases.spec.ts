@@ -8,7 +8,7 @@ import {
 
 import { signedInUser } from "../support/clients";
 import { signIn, signInAndLand } from "../support/flows";
-import { createProject } from "../support/projects";
+import { createProject, projectWithMember } from "../support/projects";
 import { createRelease } from "../support/releases";
 
 /**
@@ -51,7 +51,7 @@ test("creating a Release lands on it, and it appears on the list with no Builds"
   await expect(page).toHaveURL(new RegExp(`/projects/${project}/releases/[0-9a-f-]{36}$`));
   await expect(page.getByRole("heading", { level: 1, name: "1.0.0" })).toBeVisible();
   await expect(page.getByText("Payments Overhaul")).toBeVisible();
-  await expect(page.getByText("Builds are not here yet")).toBeVisible();
+  await expect(page.getByText("No builds yet")).toBeVisible();
 
   await page.goto(`/projects/${project}/releases`);
   const row = page.getByRole("listitem").filter({ hasText: "1.0.0" });
@@ -275,5 +275,161 @@ test.describe("what the form refuses", () => {
 
     await expect(page.locator("#version-hint")).toHaveText(`Up to ${MAXIMUM_VERSION_LENGTH} characters.`);
     await expect(page.locator("form").getByRole("alert")).toHaveCount(0);
+  });
+});
+
+test.describe("Release Details", () => {
+  test("shows the Release's version, name and description in full", async ({ page }) => {
+    const anna = await signedInUser();
+    const project = await createProject(anna, "Mobile Banking App");
+    const release = await createRelease(anna, project, "1.0.0", {
+      name: "Payments Overhaul",
+      description: "Stripe 3DS and biometric auth.",
+    });
+    await signInAndLand(page, anna);
+
+    await page.goto(`/projects/${project}/releases/${release}`);
+
+    await expect(page.getByRole("heading", { level: 1, name: "1.0.0" })).toBeVisible();
+    await expect(page.getByText("Payments Overhaul")).toBeVisible();
+    await expect(page.getByText("Stripe 3DS and biometric auth.")).toBeVisible();
+    await expect(page.getByText("No builds yet")).toBeVisible();
+  });
+
+  test("editing updates the Release's values without a reload", async ({ page }) => {
+    const anna = await signedInUser();
+    const project = await createProject(anna, "Mobile Banking App");
+    const release = await createRelease(anna, project, "1.0.0", { name: "Payments Overhaul" });
+    await signInAndLand(page, anna);
+    await page.goto(`/projects/${project}/releases/${release}`);
+
+    await page.getByRole("button", { name: "Edit" }).click();
+    await page.getByLabel("Version").fill("1.0.1");
+    await page.getByLabel("Name").fill("Payments Overhaul v2");
+    await page.getByLabel("Description").fill("Adds Apple Pay.");
+    await page.getByRole("button", { name: "Save Changes" }).click();
+
+    // The same URL throughout: this is an edit in place, not a navigation to a new one.
+    await expect(page).toHaveURL(`/projects/${project}/releases/${release}`);
+    await expect(page.getByRole("heading", { level: 1, name: "1.0.1" })).toBeVisible();
+    await expect(page.getByText("Payments Overhaul v2")).toBeVisible();
+    await expect(page.getByText("Adds Apple Pay.")).toBeVisible();
+    await expect(page.getByText("Release updated.")).toBeVisible();
+    // The form closed on success: there is nothing left to press Save on.
+    await expect(page.getByRole("button", { name: "Save Changes" })).toHaveCount(0);
+
+    // Reloading proves the write actually reached the database, not only this page's own state.
+    await page.reload();
+    await expect(page.getByRole("heading", { level: 1, name: "1.0.1" })).toBeVisible();
+  });
+
+  test("a second successful edit in the same visit also closes the form", async ({ page }) => {
+    // Guards against comparing the previous save's *message text* rather than the save itself: two
+    // successes in a row produce the identical "Release updated." notice, which a value comparison
+    // would see as unchanged and leave the form open on the second save despite it having worked.
+    const anna = await signedInUser();
+    const project = await createProject(anna, "Mobile Banking App");
+    const release = await createRelease(anna, project, "1.0.0");
+    await signInAndLand(page, anna);
+    await page.goto(`/projects/${project}/releases/${release}`);
+
+    await page.getByRole("button", { name: "Edit" }).click();
+    await page.getByLabel("Version").fill("1.0.1");
+    await page.getByRole("button", { name: "Save Changes" }).click();
+    await expect(page.getByRole("heading", { level: 1, name: "1.0.1" })).toBeVisible();
+
+    await page.getByRole("button", { name: "Edit" }).click();
+    await page.getByLabel("Version").fill("1.0.2");
+    await page.getByRole("button", { name: "Save Changes" }).click();
+
+    await expect(page.getByRole("heading", { level: 1, name: "1.0.2" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Save Changes" })).toHaveCount(0);
+  });
+
+  test("a Member who is not the Project's Owner can also edit", async ({ page }) => {
+    const anna = await signedInUser();
+    const peter = await signedInUser();
+    const project = await projectWithMember(anna, peter, "Mobile Banking App");
+    const release = await createRelease(anna, project, "1.0.0");
+    await signInAndLand(page, peter);
+    await page.goto(`/projects/${project}/releases/${release}`);
+
+    await page.getByRole("button", { name: "Edit" }).click();
+    await page.getByLabel("Name").fill("Named by a Member");
+    await page.getByRole("button", { name: "Save Changes" }).click();
+
+    await expect(page.getByText("Named by a Member")).toBeVisible();
+  });
+
+  test("editing a version to blank is refused, keeping the form open", async ({ page }) => {
+    const anna = await signedInUser();
+    const project = await createProject(anna, "Mobile Banking App");
+    const release = await createRelease(anna, project, "1.0.0");
+    await signInAndLand(page, anna);
+    await page.goto(`/projects/${project}/releases/${release}`);
+
+    await page.getByRole("button", { name: "Edit" }).click();
+    await page.getByLabel("Version").fill("   ");
+    await page.getByRole("button", { name: "Save Changes" }).click();
+
+    await expect(page.getByText("Give the release a version.")).toBeVisible();
+    // Still in the form, unsaved: the original version is untouched underneath it.
+    await expect(page.getByRole("button", { name: "Save Changes" })).toBeVisible();
+  });
+
+  test("editing a version into one already used elsewhere in the Project is refused", async ({
+    page,
+  }) => {
+    const anna = await signedInUser();
+    const project = await createProject(anna, "Mobile Banking App");
+    await createRelease(anna, project, "2.0.0");
+    const release = await createRelease(anna, project, "1.0.0");
+    await signInAndLand(page, anna);
+    await page.goto(`/projects/${project}/releases/${release}`);
+
+    await page.getByRole("button", { name: "Edit" }).click();
+    await page.getByLabel("Version").fill("2.0.0");
+    await page.getByRole("button", { name: "Save Changes" }).click();
+
+    await expect(
+      page.getByText(/2\.0\.0 is already used by a release in this project/),
+    ).toBeVisible();
+    await expect(page.getByLabel("Version")).toHaveValue("2.0.0");
+
+    // Nothing was actually changed: reloading shows the original version still stands.
+    await page.reload();
+    await expect(page.getByRole("heading", { level: 1, name: "1.0.0" })).toBeVisible();
+  });
+
+  test("editing a version into one used in a different Project succeeds", async ({ page }) => {
+    const anna = await signedInUser();
+    const home = await createProject(anna, "Mobile Banking App");
+    const other = await createProject(anna, "E-Commerce Platform");
+    await createRelease(anna, other, "1.0.0");
+    const release = await createRelease(anna, home, "2.0.0");
+    await signInAndLand(page, anna);
+    await page.goto(`/projects/${home}/releases/${release}`);
+
+    await page.getByRole("button", { name: "Edit" }).click();
+    await page.getByLabel("Version").fill("1.0.0");
+    await page.getByRole("button", { name: "Save Changes" }).click();
+
+    await expect(page.getByRole("heading", { level: 1, name: "1.0.0" })).toBeVisible();
+    await expect(page.getByText("Release updated.")).toBeVisible();
+  });
+
+  test("cancelling an edit discards it", async ({ page }) => {
+    const anna = await signedInUser();
+    const project = await createProject(anna, "Mobile Banking App");
+    const release = await createRelease(anna, project, "1.0.0");
+    await signInAndLand(page, anna);
+    await page.goto(`/projects/${project}/releases/${release}`);
+
+    await page.getByRole("button", { name: "Edit" }).click();
+    await page.getByLabel("Version").fill("9.9.9");
+    await page.getByRole("button", { name: "Cancel" }).click();
+
+    await expect(page.getByRole("heading", { level: 1, name: "1.0.0" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Save Changes" })).toHaveCount(0);
   });
 });

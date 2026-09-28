@@ -28,6 +28,11 @@ export const releaseMessages = {
    */
   couldNotCreate: "Something went wrong creating the release. Nothing has been saved.",
 
+  couldNotUpdate: "Something went wrong saving the release. Nothing has been changed.",
+
+  /** Said once, after a save that worked — the same reason `projectMessages.projectUpdated` gives. */
+  releaseUpdated: "Release updated.",
+
   /**
    * The duplicate refusal. Named the version rather than staying generic, because "which one?" is
    * the Member's next question and the list they came from already answers it.
