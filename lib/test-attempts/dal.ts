@@ -7,7 +7,7 @@ import { verifySession } from "@/lib/auth/dal";
 import { createClient } from "@/lib/supabase/server";
 
 import { outcomeBreakdown } from "./breakdown";
-import type { ReportAttempt } from "./report";
+import type { FailureOverviewAttempt } from "./report";
 import type { TestAttemptStatus, TestResultOutcome } from "./validation";
 
 /**
@@ -213,25 +213,38 @@ export const getTestAttempt = cache(async (buildId: string, attemptId: string): 
   };
 });
 
+type ReportResultRow = {
+  id: string;
+  test_case_id: string;
+  outcome: TestResultOutcome;
+  executed_by: string | null;
+  executed_at: string | null;
+};
+
 type ReportAttemptRow = {
+  id: string;
   attempt_number: number;
-  results: { test_case_id: string; outcome: TestResultOutcome }[];
+  results: ReportResultRow[];
 };
 
 /**
- * Every Attempt taken against a Build, reduced to just what the Build Report's aggregation function
- * (`buildReportMetrics`) needs: which Case each Result concerns, its Outcome, and the `attemptNumber`
- * that decides which Attempt is "latest" for that Case. In Progress and Completed Attempts are
- * returned alike and in no particular order — the aggregation function doesn't care about status or
- * ordering, only about comparing `attemptNumber`s itself.
+ * Every Attempt taken against a Build, with enough of each Result to serve every Build Report
+ * consumer: `failedOrBlockedCases` needs a Result's own id, its Attempt's id, and who recorded it and
+ * when, for the Failure Overview's row and link. One query, and one return shape (`FailureOverviewAttempt`,
+ * the richer of the two), serves that and `buildReportMetrics` alike — `buildReportMetrics` is typed
+ * against the narrower `ReportAttempt` (just `caseId`/`outcome`) on purpose, not out of duplication:
+ * it only depends on the fields it actually uses, and `FailureOverviewAttempt` structurally satisfies
+ * that narrower type, so passing this same array to both functions needs no second query or mapping.
+ * In Progress and Completed Attempts are returned alike and in no particular order — neither consumer
+ * cares about status or ordering, only about comparing `attemptNumber`s itself.
  */
-export const listTestAttemptsForReport = cache(async (buildId: string): Promise<ReportAttempt[]> => {
+export const listTestAttemptsForReport = cache(async (buildId: string): Promise<FailureOverviewAttempt[]> => {
   await verifySession();
   const supabase = await createClient();
 
   const { data, error } = await supabase
     .from("test_attempts")
-    .select("attempt_number, results:test_results(test_case_id, outcome)")
+    .select("id, attempt_number, results:test_results(id, test_case_id, outcome, executed_by, executed_at)")
     .eq("build_id", buildId)
     .returns<ReportAttemptRow[]>();
 
@@ -241,6 +254,13 @@ export const listTestAttemptsForReport = cache(async (buildId: string): Promise<
 
   return (data ?? []).map((row) => ({
     attemptNumber: row.attempt_number,
-    results: row.results.map((result) => ({ caseId: result.test_case_id, outcome: result.outcome })),
+    results: row.results.map((result) => ({
+      caseId: result.test_case_id,
+      outcome: result.outcome,
+      resultId: result.id,
+      attemptId: row.id,
+      executedBy: result.executed_by,
+      executedAt: result.executed_at,
+    })),
   }));
 });

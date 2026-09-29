@@ -89,7 +89,9 @@ export default async function TestAttemptReportPage({
       ) : (
         <ol className="flex flex-col gap-sm">
           {attempt.results.map((result) => (
-            <li key={result.id}>
+            // The Failure Overview's own rows link to `#result-{id}` to land directly on the Result
+            // that produced them, rather than the top of a potentially long Report.
+            <li key={result.id} id={`result-${result.id}`}>
               <ReportResultRow result={result} nameFor={nameFor} />
             </li>
           ))}

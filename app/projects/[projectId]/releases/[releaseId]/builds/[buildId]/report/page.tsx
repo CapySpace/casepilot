@@ -2,24 +2,30 @@ import Link from "next/link";
 
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getBuild } from "@/lib/builds/dal";
-import { requireProjectMembership } from "@/lib/projects/dal";
+import { formatDay } from "@/lib/dates";
+import { listProjectPeople, requireProjectMembership } from "@/lib/projects/dal";
+import { nameForPerson } from "@/lib/projects/people";
 import { getRelease } from "@/lib/releases/dal";
 import { listTestAttemptsForReport } from "@/lib/test-attempts/dal";
 import { testResultMessages } from "@/lib/test-attempts/messages";
-import { buildReportMetrics } from "@/lib/test-attempts/report";
-import { listReadyTestCaseIds } from "@/lib/test-cases/dal";
+import { buildReportMetrics, failedOrBlockedCases } from "@/lib/test-attempts/report";
+import { listReadyTestCaseIds, listTestCases } from "@/lib/test-cases/dal";
 
 import { ProgressBar } from "../_components/progress-bar";
 import { CompletionIndicator } from "./_components/completion-indicator";
+import { FailureOverview, type FailureOverviewRow } from "./_components/failure-overview";
 import { SummaryCards } from "./_components/summary-cards";
 
 /**
  * The Build Report: this Build's testing state at a glance, computed live from its `Ready` Cases and
  * every Attempt taken against it — no stored statistics, per the phase's own brief. Later tickets add
- * the Failure Overview, Recent Results and Tester Activity sections below this one; this ticket is the
- * summary, completion indicator and Outcome breakdown they'll all sit beneath.
+ * Recent Results and Tester Activity sections below this one; this ticket is the summary, completion
+ * indicator, Outcome breakdown and Failure Overview they'll sit beneath.
  *
  * `getRelease` then `getBuild` run first, the same layering every other page under `[buildId]` uses.
+ * The Failure Overview is sourced from every Case regardless of Status, not just the Ready ones the
+ * summary counts — see `failedOrBlockedCases`'s own comment — so it renders independently of the "no
+ * Ready Cases" empty state below rather than inside it.
  */
 export default async function BuildReportPage({
   params,
@@ -33,7 +39,27 @@ export default async function BuildReportPage({
   const attempts = await listTestAttemptsForReport(build.id);
   const metrics = buildReportMetrics(readyCaseIds, attempts);
 
+  const allCases = await listTestCases(build.id);
+  const failures = failedOrBlockedCases(allCases, attempts);
+
+  const people = await listProjectPeople(projectId);
+  const nameFor = (userId: string) => nameForPerson(people, userId, testResultMessages.personNoLongerInProject);
+
   const buildHref = `/projects/${projectId}/releases/${release.id}/builds/${build.id}`;
+
+  // Resolved into plain strings here, on the server: a Client Component (`FailureOverview`, for its
+  // filter state) can't accept a function prop like `nameFor` or an href-builder across the boundary.
+  const failureRows: FailureOverviewRow[] = failures.map((entry) => ({
+    caseId: entry.caseId,
+    caseCode: entry.caseCode,
+    caseTitle: entry.caseTitle,
+    outcome: entry.outcome,
+    recordedBy:
+      entry.executedBy && entry.executedAt
+        ? `Recorded by ${nameFor(entry.executedBy)} on ${formatDay(entry.executedAt)}`
+        : testResultMessages.notYetRecorded,
+    href: `${buildHref}/attempts/${entry.attemptId}#result-${entry.resultId}`,
+  }));
 
   return (
     <>
@@ -66,6 +92,8 @@ export default async function BuildReportPage({
           />
         </div>
       )}
+
+      <FailureOverview rows={failureRows} />
     </>
   );
 }

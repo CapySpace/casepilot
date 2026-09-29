@@ -66,3 +66,12 @@ export function Chip({ children }: { children: string }) {
 export function AttemptStatusChip({ status }: { status: TestAttemptStatus }) {
   return <Chip>{status}</Chip>;
 }
+
+/**
+ * A filter `<select>`'s classes, mirroring `Input`'s own stroke, radius and focus ring per `DESIGN.md`
+ * §4, so a filter control reads as part of the same control strip as any search field beside it.
+ * Shared by every filter this Build subtree has (`TestCasesSection`'s priority/status filters,
+ * `FailureOverview`'s Outcome filter) so the two can't drift apart on what "matches the Input" means.
+ */
+export const FILTER_SELECT_CLASSES =
+  "h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";

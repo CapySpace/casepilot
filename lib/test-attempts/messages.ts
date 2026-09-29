@@ -76,4 +76,11 @@ export const testResultMessages = {
   noReadyCasesTitle: "No ready test cases yet",
   noReadyCasesDescription:
     "Mark at least one test case Ready to start seeing this build's testing progress here.",
+
+  /** Said of the Failure Overview when nothing has ever been Failed or Blocked — distinct from
+   * `failureOverviewNoMatchesForFilter`, the same "nothing yet" vs. "nothing matches" distinction
+   * `TestCasesSection` already draws for its own search. */
+  failureOverviewEmptyTitle: "No failed or blocked test cases",
+  failureOverviewEmptyDescription: "Nothing here needs investigation right now.",
+  failureOverviewNoMatchesForFilter: "No test cases match this filter.",
 } as const;

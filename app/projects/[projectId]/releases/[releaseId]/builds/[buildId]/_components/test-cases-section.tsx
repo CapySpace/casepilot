@@ -15,15 +15,10 @@ import {
   type TestCaseStatus,
 } from "@/lib/test-cases/validation";
 
-import { Chip } from "./status-chips";
+import { Chip, FILTER_SELECT_CLASSES } from "./status-chips";
 
 /** The unfiltered value for each `<select>` — never a real Priority or Status, so a plain string. */
 const ANY = "";
-
-/** Mirrors `Input`'s own stroke, radius and focus ring, per DESIGN.md §4, so the filter selects read as
- * part of the same control strip as the search field beside them. */
-const FILTER_SELECT_CLASSES =
-  "h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
 
 /**
  * The Test Cases section of Build Details: the list ticket 02 built, now searchable and filterable.
