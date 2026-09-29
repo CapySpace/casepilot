@@ -7,32 +7,15 @@ import { requireProjectMembership } from "@/lib/projects/dal";
 import { createClient } from "@/lib/supabase/server";
 import { testCaseMessages } from "@/lib/test-cases/messages";
 import {
-  DEFAULT_TEST_CASE_PRIORITY,
-  DEFAULT_TEST_CASE_STATUS,
+  readTestCaseFormValues,
+  stepsForStorage,
   validateSteps,
   validateTestCaseDetails,
-  type StepDetails,
-  type TestCaseDetails,
-  type TestCaseErrors,
-  type TestCasePriority,
-  type TestCaseStatus,
+  type TestCaseFormState,
 } from "@/lib/test-cases/validation";
 
-export type NewTestCaseState = {
-  errors: TestCaseErrors;
-  /** A failure that belongs to no single field. */
-  message: string | null;
-  values: TestCaseDetails;
-  priority: TestCasePriority;
-  status: TestCaseStatus;
-  /**
-   * Echoed back so a rejected attempt does not also cost the Member what they typed. Step-level
-   * errors are not threaded through this state at all: `validateSteps` is a pure function of this same
-   * array, so the form recomputes them itself from whatever it renders — the server re-validating here
-   * is a security check, not a rendering dependency.
-   */
-  steps: StepDetails[];
-};
+/** Creating shares its shape with editing — see `TestCaseFormState`'s own comment. */
+export type NewTestCaseState = TestCaseFormState;
 
 /**
  * Creating a Case under a Build: a title, an optional description/preconditions/expected result, an
@@ -54,17 +37,9 @@ export async function createTestCase(
   const buildId = String(formData.get("buildId") ?? "");
   await requireProjectMembership(projectId);
 
-  const title = String(formData.get("title") ?? "").trim();
-  const description = String(formData.get("description") ?? "").trim();
-  const preconditions = String(formData.get("preconditions") ?? "").trim();
-  const expectedResult = String(formData.get("expectedResult") ?? "").trim();
-  const priority = String(formData.get("priority") ?? DEFAULT_TEST_CASE_PRIORITY) as TestCasePriority;
-  const status = String(formData.get("status") ?? DEFAULT_TEST_CASE_STATUS) as TestCaseStatus;
+  const { title, description, preconditions, expectedResult, priority, status, steps } =
+    readTestCaseFormValues(formData);
   const values = { title, description, preconditions, expectedResult };
-
-  // Steps arrive as one JSON field rather than indexed form fields: their count and order change as a
-  // Member edits, and FormData has no way to say "this group of fields belongs together as item 3."
-  const steps = parseSteps(formData.get("steps"));
 
   // The same validation the browser ran, for the same reason every other form in this area runs it
   // twice.
@@ -86,12 +61,7 @@ export async function createTestCase(
     description: description === "" ? null : description,
     preconditions: preconditions === "" ? null : preconditions,
     expected_result: expectedResult === "" ? null : expectedResult,
-    steps: steps.map(({ action, expectedResult: stepExpectedResult }) => {
-      const trimmedExpectedResult = stepExpectedResult.trim();
-      return trimmedExpectedResult === ""
-        ? { action: action.trim() }
-        : { action: action.trim(), expectedResult: trimmedExpectedResult };
-    }),
+    steps: stepsForStorage(steps),
     priority,
     status,
   });
@@ -104,24 +74,4 @@ export async function createTestCase(
   // The Case list is about to gain a row, and the Router Cache is still holding the version without it.
   revalidatePath(`/projects/${projectId}/releases/${releaseId}/builds/${buildId}`);
   redirect(`/projects/${projectId}/releases/${releaseId}/builds/${buildId}`);
-}
-
-/** A malformed or absent payload is read as no steps, never as a reason to fail the whole submission. */
-function parseSteps(raw: FormDataEntryValue | null): StepDetails[] {
-  if (typeof raw !== "string" || raw === "") return [];
-
-  try {
-    const parsed: unknown = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
-
-    return parsed.map((step: unknown) => {
-      const record = step && typeof step === "object" ? (step as Record<string, unknown>) : {};
-      return {
-        action: typeof record.action === "string" ? record.action : "",
-        expectedResult: typeof record.expectedResult === "string" ? record.expectedResult : "",
-      };
-    });
-  } catch {
-    return [];
-  }
 }

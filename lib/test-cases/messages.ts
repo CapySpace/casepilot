@@ -51,4 +51,26 @@ export const testCaseMessages = {
    * gives: the one thing this message knows is that something unexpected happened.
    */
   couldNotCreate: "Something went wrong creating the test case. Nothing has been saved.",
+
+  couldNotUpdate: "Something went wrong saving the test case. Nothing has been changed.",
+
+  /** Deleting: the question, and what it costs. Said before, not after — the same discipline
+   * `projectMessages.removeTitle`/`removeDescription` use for removing a Member. */
+  deleteTitle(code: string) {
+    return `Delete ${code}?`;
+  },
+
+  deleteDescription(code: string) {
+    return `${code} will be removed from this build's test cases. This can't be undone.`;
+  },
+
+  deleteConfirm: "Delete test case",
+
+  couldNotDelete: "Something went wrong deleting the test case. Nothing has changed.",
+
+  /**
+   * Who created or last updated a Case, when that person is no longer in the Project. Same wording as
+   * `projectMessages.inviterNoLongerHere` — it is the same fact about a person, said the same way.
+   */
+  personNoLongerInProject: "someone who has since left the project",
 } as const;

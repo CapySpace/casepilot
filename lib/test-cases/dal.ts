@@ -1,11 +1,12 @@
 import "server-only";
 
+import { notFound } from "next/navigation";
 import { cache } from "react";
 
 import { verifySession } from "@/lib/auth/dal";
 import { createClient } from "@/lib/supabase/server";
 
-import type { TestCasePriority, TestCaseStatus } from "./validation";
+import type { StepDetails, TestCasePriority, TestCaseStatus } from "./validation";
 
 /**
  * Reading Cases, on the authenticated side of the boundary.
@@ -63,4 +64,93 @@ export const listTestCases = cache(async (buildId: string): Promise<TestCaseSumm
     priority: row.priority,
     status: row.status,
   }));
+});
+
+/** A Case, as seen from inside it. */
+export type TestCase = {
+  id: string;
+  buildId: string;
+  code: string;
+  title: string;
+  description: string | null;
+  preconditions: string | null;
+  steps: StepDetails[];
+  expectedResult: string | null;
+  priority: TestCasePriority;
+  status: TestCaseStatus;
+  createdBy: string;
+  updatedBy: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+type TestCaseRow = {
+  id: string;
+  build_id: string;
+  code: string;
+  title: string;
+  description: string | null;
+  preconditions: string | null;
+  steps: { action: string; expectedResult?: string }[];
+  expected_result: string | null;
+  priority: TestCasePriority;
+  status: TestCaseStatus;
+  created_by: string;
+  updated_by: string;
+  created_at: string;
+  updated_at: string;
+};
+
+/**
+ * The Case at that id, scoped to the Build the URL names — or a 404.
+ *
+ * Callers are expected to have already run `getBuild(releaseId, buildId)`, the same
+ * deliberate-placeholder-turned-real guard `getBuild` itself describes relative to
+ * `requireProjectMembership`. That call already proves the Build belongs to this Release and Project and
+ * the caller is a Member of it; the `build_id` match below is what stops a Case id from rendering under
+ * the *wrong* Build — a Member of the Project could otherwise open a Case belonging to a different Build
+ * and see it presented as this one's.
+ *
+ * `deleted_at is null` excludes a soft-deleted Case here, not at the row-level security layer — see
+ * `listTestCases`'s own comment.
+ */
+export const getTestCase = cache(async (buildId: string, testCaseId: string): Promise<TestCase> => {
+  await verifySession();
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("test_cases")
+    .select(
+      "id, build_id, code, title, description, preconditions, steps, expected_result, priority, status, created_by, updated_by, created_at, updated_at",
+    )
+    .eq("id", testCaseId)
+    .eq("build_id", buildId)
+    .is("deleted_at", null)
+    .maybeSingle<TestCaseRow>();
+
+  if (error) {
+    throw new Error(`Could not read Case ${testCaseId}: ${error.message}`);
+  }
+
+  // No distinction between "no such Case", "not under this Build", "deleted" and "not a Member of its
+  // Project" — all four get the same answer, for the reason `getBuild` gives: drawing the distinction is
+  // itself the disclosure.
+  if (!data) notFound();
+
+  return {
+    id: data.id,
+    buildId: data.build_id,
+    code: data.code,
+    title: data.title,
+    description: data.description,
+    preconditions: data.preconditions,
+    steps: data.steps.map((step) => ({ action: step.action, expectedResult: step.expectedResult ?? "" })),
+    expectedResult: data.expected_result,
+    priority: data.priority,
+    status: data.status,
+    createdBy: data.created_by,
+    updatedBy: data.updated_by,
+    createdAt: data.created_at,
+    updatedAt: data.updated_at,
+  };
 });

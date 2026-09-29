@@ -1,4 +1,4 @@
-import { ClipboardList } from "lucide-react";
+import { ChevronRight, ClipboardList } from "lucide-react";
 import Link from "next/link";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -89,7 +89,12 @@ export default async function BuildDetailsPage({
           <ul aria-labelledby="test-cases-heading" className="flex flex-col gap-xs">
             {testCases.map((testCase) => (
               <li key={testCase.id}>
-                <TestCaseRow testCase={testCase} />
+                <TestCaseRow
+                  projectId={projectId}
+                  releaseId={release.id}
+                  buildId={build.id}
+                  testCase={testCase}
+                />
               </li>
             ))}
           </ul>
@@ -99,9 +104,21 @@ export default async function BuildDetailsPage({
   );
 }
 
-function TestCaseRow({ testCase }: { testCase: TestCaseSummary }) {
+function TestCaseRow({
+  projectId,
+  releaseId,
+  buildId,
+  testCase,
+}: {
+  projectId: string;
+  releaseId: string;
+  buildId: string;
+  testCase: TestCaseSummary;
+}) {
   return (
-    <div className="flex flex-col gap-md rounded-xl border border-border bg-card p-md sm:flex-row sm:items-center sm:justify-between">
+    // One link, stretched over the whole row by its own `after` layer — the same treatment
+    // `ReleaseDetailsPage`'s own `BuildRow` uses, and for the same reason.
+    <div className="group relative flex flex-col gap-md rounded-xl border border-border bg-card p-md transition-colors hover:border-ring/60 hover:bg-accent/40 has-[a:focus-visible]:ring-3 has-[a:focus-visible]:ring-ring/50 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex min-w-0 items-center gap-sm">
         <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-secondary text-secondary-foreground">
           <ClipboardList className="size-5" aria-hidden="true" />
@@ -109,13 +126,24 @@ function TestCaseRow({ testCase }: { testCase: TestCaseSummary }) {
 
         <div className="flex min-w-0 flex-col gap-2xs">
           <span className="font-mono text-body-sm text-reference">{testCase.code}</span>
-          <h3 className="text-title-md font-semibold">{testCase.title}</h3>
+          <h3 className="text-title-md font-semibold">
+            <Link
+              href={`/projects/${projectId}/releases/${releaseId}/builds/${buildId}/test-cases/${testCase.id}`}
+              className="after:absolute after:inset-0 focus-visible:outline-none"
+            >
+              {testCase.title}
+            </Link>
+          </h3>
         </div>
       </div>
 
       <div className="flex shrink-0 items-center gap-xs">
         <Chip>{testCase.priority}</Chip>
         <Chip>{testCase.status}</Chip>
+        <ChevronRight
+          aria-hidden="true"
+          className="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-reference"
+        />
       </div>
     </div>
   );

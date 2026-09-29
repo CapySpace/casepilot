@@ -16,8 +16,8 @@ import {
 /**
  * A destructive action, behind a question.
  *
- * All three of the phase's destructive actions use this: leaving a Project, removing somebody from one, and
- * cancelling an Invitation.
+ * Every destructive action in the product uses this: leaving a Project, removing somebody from one,
+ * cancelling an Invitation, and deleting a Case.
  *
  * **It needs JavaScript, and there is no pretending otherwise.** A dialog cannot open without the client
  * bundle, so the question — and therefore the action behind it — is unreachable without one. That is the
