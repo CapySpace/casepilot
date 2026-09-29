@@ -23,8 +23,8 @@ _Avoid_: Version (the field on a Release, not the entity itself)
 **Build**:
 A specific, testable build produced under a Release, identified by a build number — e.g. `100` — that
 is assigned externally (by CI) and recorded here, not minted by CasePilot. Unique within its Release,
-not within its Project: two Releases may each have a "Build 100". Test-execution work (Phase 3) attaches
-here.
+not within its Project: two Releases may each have a "Build 100". Cases belong to a Build, not to its
+Release or Project, and do not carry forward when a new Build is produced. See ADR-0005.
 
 **Membership**:
 The record that a particular User belongs to a particular Project, carrying their Role and when
@@ -44,7 +44,9 @@ not part of the Project in any way.
 _Avoid_: Request, join link, share
 
 **Case**:
-A single test case: one thing to verify, identified as `TC-nnn`, belonging to a Project.
+A single test case: one thing to verify, identified as `TC-nnn` unique within its Build. It belongs to
+that Build specifically, not to the Release or Project — a Case written against Build 100 is not
+automatically part of Build 101. See ADR-0005.
 _Avoid_: Legal case, matter, docket, test scenario, script
 
 ### Notes on contested terms

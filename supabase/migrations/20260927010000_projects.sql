@@ -1,9 +1,10 @@
 -- Projects, Memberships and Invitations: the tenant boundary, who is inside it, and how they got
 -- there.
 --
--- A Project owns Cases, Builds and Defects, so "who can see this" is the phase's central question
--- and it is answered here rather than in a page. Two predicates carry every policy in the file —
--- see ADR-0003 for why they are `security definer`, and for the one rule that keeps them safe.
+-- A Project owns Releases, and transitively the Builds, Cases and Defects beneath them, so "who can
+-- see this" is the phase's central question and it is answered here rather than in a page. Two
+-- predicates carry every policy in the file — see ADR-0003 for why they are `security definer`, and
+-- for the one rule that keeps them safe.
 
 create table public.projects (
   id uuid primary key default gen_random_uuid(),
@@ -23,8 +24,8 @@ create table public.projects (
 );
 
 comment on table public.projects is
-  'A tenant boundary that owns Cases, Builds and Defects. Its Owner is the holder of the owner '
-  'Membership in project_members, never created_by.';
+  'A tenant boundary that owns Releases, and transitively the Builds, Cases and Defects beneath them. '
+  'Its Owner is the holder of the owner Membership in project_members, never created_by.';
 
 create table public.project_members (
   id uuid primary key default gen_random_uuid(),
