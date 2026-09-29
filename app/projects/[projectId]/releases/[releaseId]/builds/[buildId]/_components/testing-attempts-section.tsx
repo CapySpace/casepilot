@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDay } from "@/lib/dates";
@@ -7,6 +8,7 @@ import { attemptMedallionTone, type AttemptMedallionTone } from "@/lib/test-atte
 import { testResultMessages } from "@/lib/test-attempts/messages";
 import type { TestResultOutcome } from "@/lib/test-attempts/validation";
 
+import { DeleteAttempt } from "../attempts/_components/delete-attempt";
 import { AttemptStatusChip } from "./status-chips";
 import { StartAttemptForm } from "./start-attempt-form";
 
@@ -38,7 +40,9 @@ const TITLE_TONE_CLASSES: Record<AttemptMedallionTone, string> = {
  *
  * `nameFor` is threaded in rather than looked up here, the same shape `TestCaseDetailsPage` uses for
  * its own `nameFor` — the caller already holds `listProjectPeople`'s result, and a second fetch here
- * would duplicate it needlessly.
+ * would duplicate it needlessly. `AttemptEntry`'s own `deleteControl` prop follows the same reasoning
+ * one step further: this component builds the whole `DeleteAttempt` element, not just the ids it
+ * needs, so the ids travel no further than the component that actually uses them.
  */
 export function TestingAttemptsSection({
   attempts,
@@ -100,7 +104,18 @@ export function TestingAttemptsSection({
                   attempt={attempt}
                   tone={tone}
                   nameFor={nameFor}
-                  href={`/projects/${projectId}/releases/${releaseId}/builds/${buildId}/attempts/${attempt.id}/execute`}
+                  href={`/projects/${projectId}/releases/${releaseId}/builds/${buildId}/attempts/${attempt.id}${attempt.status === "In Progress" ? "/execute" : ""}`}
+                  deleteControl={
+                    attempt.status === "In Progress" ? (
+                      <DeleteAttempt
+                        projectId={projectId}
+                        releaseId={releaseId}
+                        buildId={buildId}
+                        attemptId={attempt.id}
+                        attemptNumber={attempt.attemptNumber}
+                      />
+                    ) : null
+                  }
                 />
               </li>
             );
@@ -127,11 +142,14 @@ function AttemptEntry({
   tone,
   nameFor,
   href,
+  deleteControl,
 }: {
   attempt: TestAttemptSummary;
   tone: AttemptMedallionTone;
   nameFor: (userId: string) => string;
   href: string;
+  /** Built by the caller, which already holds the ids this needs — see its own comment. */
+  deleteControl: ReactNode;
 }) {
   return (
     <div className="flex min-w-0 flex-1 flex-col gap-xs rounded-xl border border-border bg-card p-md">
@@ -144,6 +162,7 @@ function AttemptEntry({
         <div className="flex items-center gap-xs">
           <AttemptStatusChip status={attempt.status} />
           <span className="text-body-sm tabular-nums text-muted-foreground">{formatDay(attempt.startedAt)}</span>
+          {deleteControl}
         </div>
       </div>
 

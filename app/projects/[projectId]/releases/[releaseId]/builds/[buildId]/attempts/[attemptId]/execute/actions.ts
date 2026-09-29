@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 import { verifySession } from "@/lib/auth/dal";
 import { requireProjectMembership } from "@/lib/projects/dal";
@@ -95,4 +96,55 @@ export async function recordResult({
     executedBy: data.executed_by,
     executedAt: data.executed_at,
   };
+}
+
+export type CompleteTestAttemptState = {
+  message: string | null;
+};
+
+/**
+ * Completing an Attempt: succeeds regardless of how many Results are still `Not Run` — an interrupted
+ * run is still worth closing out and reporting on, per the phase spec. Once this succeeds, row-level
+ * security's own `status = 'In Progress'` condition on the `test_attempts` UPDATE policy is the entire
+ * enforcement of "permanently un-updatable from here on" — there is no separate reopening check to
+ * write, because no later UPDATE, from this Action or any other path, can ever target this row again.
+ *
+ * The `.eq("build_id", buildId)` match below follows `updateTestCase`'s own reasoning: row-level
+ * security alone would let a Member complete an Attempt under the *right* Project but a URL (or a
+ * hand-crafted POST) naming the *wrong* Build — this is what stops that, the same way it stops a Case
+ * id resolving under a Build it doesn't belong to.
+ */
+export async function completeTestAttempt(
+  _previous: CompleteTestAttemptState,
+  formData: FormData,
+): Promise<CompleteTestAttemptState> {
+  const projectId = String(formData.get("projectId") ?? "");
+  const releaseId = String(formData.get("releaseId") ?? "");
+  const buildId = String(formData.get("buildId") ?? "");
+  const attemptId = String(formData.get("attemptId") ?? "");
+  await requireProjectMembership(projectId);
+
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("test_attempts")
+    .update({ status: "Completed", completed_at: new Date().toISOString() })
+    .eq("id", attemptId)
+    .eq("build_id", buildId)
+    .select("id");
+
+  if (error) {
+    console.error(`Could not complete Attempt ${attemptId}`, error);
+    return { message: testResultMessages.couldNotComplete };
+  }
+
+  if ((data ?? []).length === 0) {
+    console.error(`Attempt ${attemptId} is not under Build ${buildId}, already Completed, or not reachable`);
+    return { message: testResultMessages.couldNotComplete };
+  }
+
+  const attemptPath = `/projects/${projectId}/releases/${releaseId}/builds/${buildId}/attempts/${attemptId}`;
+  revalidatePath(`/projects/${projectId}/releases/${releaseId}/builds/${buildId}`);
+  revalidatePath(attemptPath);
+  redirect(attemptPath);
 }

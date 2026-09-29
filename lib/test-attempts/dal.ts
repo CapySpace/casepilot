@@ -6,7 +6,8 @@ import { cache } from "react";
 import { verifySession } from "@/lib/auth/dal";
 import { createClient } from "@/lib/supabase/server";
 
-import { TEST_RESULT_OUTCOMES, type TestAttemptStatus, type TestResultOutcome } from "./validation";
+import { outcomeBreakdown } from "./breakdown";
+import type { TestAttemptStatus, TestResultOutcome } from "./validation";
 
 /**
  * Reading Attempts and Results, on the authenticated side of the boundary.
@@ -14,19 +15,6 @@ import { TEST_RESULT_OUTCOMES, type TestAttemptStatus, type TestResultOutcome } 
  * Row-level security is what decides which rows come back, the same discipline `lib/test-cases/dal.ts`
  * states for itself — these functions do not filter for visibility, and must not start.
  */
-
-function emptyBreakdown(): Record<TestResultOutcome, number> {
-  return Object.fromEntries(TEST_RESULT_OUTCOMES.map((outcome) => [outcome, 0])) as Record<
-    TestResultOutcome,
-    number
-  >;
-}
-
-function breakdownOf(results: { outcome: TestResultOutcome }[]): Record<TestResultOutcome, number> {
-  const breakdown = emptyBreakdown();
-  for (const result of results) breakdown[result.outcome] += 1;
-  return breakdown;
-}
 
 /** One row of a Build's Testing Attempts list, with enough of its Results to show progress. */
 export type TestAttemptSummary = {
@@ -78,7 +66,7 @@ export const listTestAttempts = cache(async (buildId: string): Promise<TestAttem
   }
 
   return (data ?? []).map((row) => {
-    const breakdown = breakdownOf(row.results);
+    const breakdown = outcomeBreakdown(row.results);
     const total = row.results.length;
 
     return {

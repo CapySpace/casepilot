@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { getBuild } from "@/lib/builds/dal";
 import { formatDay } from "@/lib/dates";
@@ -9,6 +10,7 @@ import { getTestAttempt } from "@/lib/test-attempts/dal";
 import { testResultMessages } from "@/lib/test-attempts/messages";
 
 import { AttemptStatusChip } from "../../../_components/status-chips";
+import { CompleteAttemptForm } from "./_components/complete-attempt-form";
 import { ExecutionScreen } from "./_components/execution-screen";
 
 /**
@@ -16,6 +18,10 @@ import { ExecutionScreen } from "./_components/execution-screen";
  * an Outcome or notes against one is `ExecutionScreen`'s own work, the interactive part of this page —
  * everything above it here is static, server-rendered context that doesn't change while a Member
  * works through the Attempt.
+ *
+ * A Completed Attempt has nothing left to execute — `protect_test_result_integrity` would refuse
+ * every write anyway — so this redirects to the read-only Report rather than rendering a screen whose
+ * controls would silently fail one by one.
  *
  * `getRelease` then `getBuild` run first, the same layering every other page under `[buildId]` uses,
  * before `getTestAttempt` adds the last link: that this Attempt belongs to this Build.
@@ -28,6 +34,10 @@ export default async function TestAttemptExecutionPage({
   const release = await getRelease(projectId, releaseId);
   const build = await getBuild(release.id, buildId);
   const attempt = await getTestAttempt(build.id, attemptId);
+
+  if (attempt.status === "Completed") {
+    redirect(`/projects/${projectId}/releases/${release.id}/builds/${build.id}/attempts/${attempt.id}`);
+  }
 
   const people = await listProjectPeople(projectId);
   const nameFor = (userId: string) => nameForPerson(people, userId, testResultMessages.personNoLongerInProject);
@@ -48,7 +58,15 @@ export default async function TestAttemptExecutionPage({
           <h1 className="font-heading text-headline-md font-semibold">
             {testResultMessages.attemptLabel(attempt.attemptNumber)}
           </h1>
-          <AttemptStatusChip status={attempt.status} />
+          <div className="flex items-center gap-xs">
+            <AttemptStatusChip status={attempt.status} />
+            <CompleteAttemptForm
+              projectId={projectId}
+              releaseId={release.id}
+              buildId={build.id}
+              attemptId={attempt.id}
+            />
+          </div>
         </div>
 
         <p className="text-body-sm text-muted-foreground tabular-nums">

@@ -4,21 +4,12 @@ import { useMemo, useState } from "react";
 
 import type { ProjectPerson } from "@/lib/projects/dal";
 import { nameForPerson } from "@/lib/projects/people";
+import { outcomeBreakdown } from "@/lib/test-attempts/breakdown";
 import type { TestResultDetail } from "@/lib/test-attempts/dal";
-import { TEST_RESULT_OUTCOMES, type TestResultOutcome } from "@/lib/test-attempts/validation";
 
 import { OutcomeChip } from "../../../../_components/status-chips";
 import { ProgressBar } from "../../../../_components/progress-bar";
 import { ResultPanel } from "./result-panel";
-
-function breakdownOf(results: TestResultDetail[]): Record<TestResultOutcome, number> {
-  const counts = Object.fromEntries(TEST_RESULT_OUTCOMES.map((outcome) => [outcome, 0])) as Record<
-    TestResultOutcome,
-    number
-  >;
-  for (const result of results) counts[result.outcome] += 1;
-  return counts;
-}
 
 /**
  * The interactive part of the Testing Execution Page: the live progress bar, the jump-to-Case rail,
@@ -52,7 +43,7 @@ export function ExecutionScreen({
   const [results, setResults] = useState(initialResults);
   const [activeId, setActiveId] = useState<string | null>(initialResults[0]?.id ?? null);
 
-  const breakdown = useMemo(() => breakdownOf(results), [results]);
+  const breakdown = useMemo(() => outcomeBreakdown(results), [results]);
   const tested = results.length - breakdown["Not Run"];
   const active = results.find((result) => result.id === activeId) ?? null;
 

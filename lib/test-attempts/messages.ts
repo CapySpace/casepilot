@@ -43,6 +43,26 @@ export const testResultMessages = {
   noAttemptsYetTitle: "No testing attempts yet",
   noAttemptsYetDescription: "Start one to begin recording results against this build's test cases.",
 
+  couldNotComplete: "Something went wrong completing the testing attempt. Nothing has changed.",
+
+  couldNotDelete: "Something went wrong deleting the testing attempt. Nothing has changed.",
+
+  deleteAttemptTitle(attemptNumber: number) {
+    return `Delete Attempt #${attemptNumber}?`;
+  },
+
+  deleteAttemptDescription(attemptNumber: number) {
+    return `Attempt #${attemptNumber} and all of its recorded results will be removed. This can't be undone.`;
+  },
+
+  deleteAttemptConfirm: "Delete attempt",
+
+  /** Said of a Result nobody has recorded an Outcome against yet — the execution screen's own
+   * "Recorded by ... on ..." line, and the Report's read-only mirror of it. */
+  notYetRecorded: "Not yet recorded",
+
+  noNotesRecorded: "No notes recorded.",
+
   /**
    * Who started an Attempt, or last touched a Result, when that person is no longer in the Project.
    * Same wording as `testCaseMessages.personNoLongerInProject` — it is the same fact about a person,

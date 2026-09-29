@@ -5,6 +5,7 @@ import { signedInUser } from "../support/clients";
 import { signInAndLand } from "../support/flows";
 import { createProject, projectWithMember } from "../support/projects";
 import { createRelease } from "../support/releases";
+import { completeTestAttempt, createTestAttempt } from "../support/test-attempts";
 import { createTestCase } from "../support/test-cases";
 
 /**
@@ -131,4 +132,47 @@ test("a non-member cannot reach a Build's execution page", async ({ page }) => {
   await signInAndLand(page, peter);
   const response = await page.goto(attemptUrl);
   expect(response?.status()).toBe(404);
+});
+
+test("an in-progress Attempt can be deleted, with a confirmation, and disappears from the list", async ({
+  page,
+}) => {
+  const anna = await signedInUser();
+  const project = await createProject(anna, "Mobile Banking App");
+  const release = await createRelease(anna, project, "1.0.0");
+  const build = await createBuild(anna, release, "100");
+  await createTestCase(anna, build);
+  await signInAndLand(page, anna);
+
+  await page.goto(`/projects/${project}/releases/${release}/builds/${build}`);
+  await page.getByRole("button", { name: "Record Attempt" }).click();
+  await page.goto(`/projects/${project}/releases/${release}/builds/${build}`);
+  await expect(page.getByText("Attempt #1")).toBeVisible();
+
+  await page.getByRole("button", { name: "Delete" }).click();
+  await expect(page.getByText("Delete Attempt #1?")).toBeVisible();
+  await page.getByRole("button", { name: "Delete attempt" }).click();
+
+  await expect(page).toHaveURL(`/projects/${project}/releases/${release}/builds/${build}`);
+  await expect(page.getByText("No testing attempts yet")).toBeVisible();
+});
+
+test("a Completed Attempt offers no delete control, on the Build's list or its own Report", async ({
+  page,
+}) => {
+  const anna = await signedInUser();
+  const project = await createProject(anna, "Mobile Banking App");
+  const release = await createRelease(anna, project, "1.0.0");
+  const build = await createBuild(anna, release, "100");
+  await createTestCase(anna, build);
+  const attempt = await createTestAttempt(anna, build);
+  await completeTestAttempt(anna, attempt);
+  await signInAndLand(page, anna);
+
+  await page.goto(`/projects/${project}/releases/${release}/builds/${build}`);
+  await expect(page.getByText("Attempt #1")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Delete" })).toHaveCount(0);
+
+  await page.goto(`/projects/${project}/releases/${release}/builds/${build}/attempts/${attempt}`);
+  await expect(page.getByRole("button", { name: "Delete" })).toHaveCount(0);
 });

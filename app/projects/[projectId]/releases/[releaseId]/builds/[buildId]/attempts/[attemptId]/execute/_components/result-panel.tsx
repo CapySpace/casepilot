@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { formatDay } from "@/lib/dates";
 import type { TestResultDetail } from "@/lib/test-attempts/dal";
 import { MAXIMUM_NOTES_LENGTH } from "@/lib/test-attempts/limits";
+import { testResultMessages } from "@/lib/test-attempts/messages";
 import { TEST_RESULT_OUTCOMES, type TestResultOutcome } from "@/lib/test-attempts/validation";
 
 import { OUTCOME_TOKENS, OutcomeDot } from "../../../../_components/status-chips";
@@ -108,7 +109,7 @@ export function ResultPanel({
         <p className="text-body-sm text-muted-foreground tabular-nums">
           {result.executedAt && executedByName
             ? `Recorded by ${executedByName} on ${formatDay(result.executedAt)}`
-            : "Not yet recorded"}
+            : testResultMessages.notYetRecorded}
         </p>
       </div>
 

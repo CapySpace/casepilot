@@ -52,3 +52,52 @@ export async function startTestAttempt(
     `/projects/${projectId}/releases/${releaseId}/builds/${buildId}/attempts/${attempt.id}/execute`,
   );
 }
+
+export type DeleteTestAttemptState = {
+  message: string | null;
+};
+
+/**
+ * Deleting an Attempt: only while it is still `In Progress` — a real Postgres `DELETE`, unlike a
+ * Case's soft delete, because an Attempt has no historical meaning yet if it never ran to completion.
+ * `requireProjectMembership` follows the same reasoning `startTestAttempt` states for itself; the
+ * `status = 'In Progress'` half of the refusal is row-level security's own doing
+ * (`20260930000000_test_attempts_and_results.sql`'s delete policy), not this Action.
+ *
+ * The `.eq("build_id", buildId)` match is `updateTestCase`'s own reasoning applied here: row-level
+ * security alone would let a Member delete an Attempt under the *right* Project but a URL naming the
+ * *wrong* Build. Between that, the status condition, and plain non-existence, a zero-row result can
+ * mean any of three things, and this can't tell them apart without becoming the disclosure itself.
+ */
+export async function deleteTestAttempt(
+  _previous: DeleteTestAttemptState,
+  formData: FormData,
+): Promise<DeleteTestAttemptState> {
+  const projectId = String(formData.get("projectId") ?? "");
+  const releaseId = String(formData.get("releaseId") ?? "");
+  const buildId = String(formData.get("buildId") ?? "");
+  const attemptId = String(formData.get("attemptId") ?? "");
+  await requireProjectMembership(projectId);
+
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("test_attempts")
+    .delete()
+    .eq("id", attemptId)
+    .eq("build_id", buildId)
+    .select("id");
+
+  if (error) {
+    console.error(`Could not delete Attempt ${attemptId}`, error);
+    return { message: testResultMessages.couldNotDelete };
+  }
+
+  if ((data ?? []).length === 0) {
+    console.error(`Attempt ${attemptId} is not under Build ${buildId}, already Completed, or not reachable`);
+    return { message: testResultMessages.couldNotDelete };
+  }
+
+  revalidatePath(`/projects/${projectId}/releases/${releaseId}/builds/${buildId}`);
+  redirect(`/projects/${projectId}/releases/${releaseId}/builds/${buildId}`);
+}

@@ -198,3 +198,47 @@ test("recording on an Attempt completed elsewhere while this screen was open fai
     page.getByText("This attempt was completed while you were working on it. Your change was not saved."),
   ).toBeVisible();
 });
+
+test("completing an Attempt with Cases still Not Run succeeds and redirects to the Report", async ({
+  page,
+}) => {
+  const anna = await signedInUser();
+  const project = await createProject(anna, "Mobile Banking App");
+  const release = await createRelease(anna, project, "1.0.0");
+  const build = await createBuild(anna, release, "100");
+  await createTestCase(anna, build, "Sign in with valid credentials");
+  await createTestCase(anna, build, "Sign out clears the session");
+  await signInAndLand(page, anna);
+  await startAttempt(page, project, release, build);
+
+  await page.getByRole("button", { name: "Passed", exact: true }).click();
+  await expect(page.getByText("Tested: 1 / 2")).toBeVisible();
+
+  await page.getByRole("button", { name: "Complete Attempt" }).click();
+
+  await expect(page).toHaveURL(
+    new RegExp(`/projects/${project}/releases/${release}/builds/${build}/attempts/[^/]+$`),
+  );
+  await expect(page.getByText("Completed", { exact: true })).toBeVisible();
+  await expect(page.getByText("Tested: 1 / 2")).toBeVisible();
+});
+
+test("a Completed Attempt's execution screen redirects to the Report instead of showing editable controls", async ({
+  page,
+}) => {
+  const anna = await signedInUser();
+  const project = await createProject(anna, "Mobile Banking App");
+  const release = await createRelease(anna, project, "1.0.0");
+  const build = await createBuild(anna, release, "100");
+  const testCase = await createTestCase(anna, build);
+  const attempt = await createTestAttempt(anna, build);
+  await createTestResult(anna, attempt, testCase);
+  await completeTestAttempt(anna, attempt);
+  await signInAndLand(page, anna);
+
+  await page.goto(`/projects/${project}/releases/${release}/builds/${build}/attempts/${attempt}/execute`);
+
+  await expect(page).toHaveURL(`/projects/${project}/releases/${release}/builds/${build}/attempts/${attempt}`);
+  await expect(page.getByRole("button", { name: "Passed", exact: true })).toHaveCount(0);
+  await expect(page.getByLabel("Notes")).toHaveCount(0);
+});
