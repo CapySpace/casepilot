@@ -1,10 +1,15 @@
+import { Wordmark } from "@/components/wordmark";
+import { verifySession } from "@/lib/auth/dal";
 import { listMyProjects, requireProjectMembership } from "@/lib/projects/dal";
 
+import { SignOutButton } from "../_components/sign-out-button";
+import { ProjectWorkspaceHeader } from "./_components/project-workspace-header";
+import { ReleaseSearchProvider } from "./_components/release-search-context";
 import { ProjectNav } from "./_components/project-nav";
 import { ProjectSwitcher } from "./_components/project-switcher";
 
 /**
- * The shell the design draws: a persistent sidebar beside the work.
+ * The full-height project shell from the Stitch release reference.
  *
  * It lives here, inside a Project, rather than above `/projects` — its eyebrow, its switcher and its
  * navigation towards Releases and Builds are all about *a* Project, and rendering it over a list of
@@ -14,30 +19,61 @@ import { ProjectSwitcher } from "./_components/project-switcher";
  * Project's name, so it reads Project data and must be guarded like anything else that does. It is
  * `cache`d, so the page beneath does not pay for a second query.
  *
- * Below the desktop breakpoint the sidebar sits above the content rather than sliding over it. The
- * design calls for a slide-over on tablet, which needs JavaScript and a dialog; stacking is the honest
- * version of it until something needs more.
+ * On narrow screens the sidebar stacks above the workspace so its project navigation remains available.
  */
-export default async function ProjectLayout({ children, params }: LayoutProps<"/projects/[projectId]">) {
+export default async function ProjectLayout({
+  children,
+  params,
+}: LayoutProps<"/projects/[projectId]">) {
   const { projectId } = await params;
-  const [project, projects] = await Promise.all([
+  const [project, projects, user] = await Promise.all([
     requireProjectMembership(projectId),
     listMyProjects(),
+    verifySession(),
   ]);
+  const initial = user.email[0]?.toLocaleUpperCase() ?? "U";
 
   return (
-    <div className="flex flex-col gap-lg desktop:flex-row">
-      {/*
-        `rounded-2xl` because this is a panel, not a data card — DESIGN.md §5's radius table maps by
-        what the element is. `desktop:` is the 1200px threshold §5 names, not Tailwind's `lg`, which
-        would collapse the sidebar 176px early.
-      */}
-      <aside className="flex flex-col gap-lg rounded-2xl border border-border bg-card p-md shadow-level-1 desktop:w-sidebar desktop:shrink-0">
-        <ProjectSwitcher current={project} projects={projects} />
-        <ProjectNav projectId={project.id} />
-      </aside>
+    <ReleaseSearchProvider>
+      <div className="flex min-h-screen flex-col bg-background desktop:flex-row">
+        {/* `desktop:` uses the 1200px threshold named in DESIGN.md §5. */}
+        <aside className="flex shrink-0 flex-col justify-between border-b border-border bg-card desktop:min-h-screen desktop:w-sidebar desktop:border-b-0 desktop:border-r">
+          <div className="flex flex-col gap-lg p-md">
+            <div className="flex items-center justify-between gap-xs px-xs pb-xs">
+              <Wordmark />
+              <span className="shrink-0 rounded-md border border-border bg-secondary px-xs py-2xs text-body-sm text-muted-foreground">
+                v0.1
+              </span>
+            </div>
+            <ProjectSwitcher current={project} projects={projects} />
+            <ProjectNav projectId={project.id} />
+          </div>
+          <div className="flex flex-wrap items-center justify-between gap-sm border-t border-border p-md">
+            <div className="flex min-w-0 items-center gap-xs">
+              <span
+                className="flex size-9 shrink-0 items-center justify-center rounded-full bg-secondary font-heading text-body-sm font-semibold text-secondary-foreground"
+                aria-hidden="true"
+              >
+                {initial}
+              </span>
+              <span className="flex min-w-0 flex-col leading-tight">
+                <span className="text-body-sm font-semibold text-foreground">Signed in</span>
+                <span className="max-w-40 truncate text-body-sm text-muted-foreground">
+                  {user.email}
+                </span>
+              </span>
+            </div>
+            <SignOutButton />
+          </div>
+        </aside>
 
-      <div className="flex min-w-0 flex-1 flex-col gap-lg">{children}</div>
-    </div>
+        <div className="flex min-h-screen min-w-0 flex-1 flex-col">
+          <ProjectWorkspaceHeader projectId={project.id} projectName={project.name} />
+          <main className="flex min-w-0 flex-1 flex-col gap-lg px-lg py-xl desktop:px-xl">
+            {children}
+          </main>
+        </div>
+      </div>
+    </ReleaseSearchProvider>
   );
 }

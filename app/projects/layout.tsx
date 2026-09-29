@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 import { Bell, Settings } from "lucide-react";
 import Link from "next/link";
 
@@ -5,6 +7,7 @@ import { Wordmark } from "@/components/wordmark";
 import { verifySession } from "@/lib/auth/dal";
 import { AUTHENTICATED_HOME } from "@/lib/auth/routes";
 
+import { ProjectsFrame } from "./_components/projects-frame";
 import { SignOutButton } from "./_components/sign-out-button";
 
 /**
@@ -20,6 +23,28 @@ export default async function ProjectsLayout({ children }: LayoutProps<"/project
   const user = await verifySession();
   const initial = user.email[0]?.toLocaleUpperCase() ?? "U";
 
+  return (
+    <ProjectsFrame
+      projectsFrame={
+        <ProjectsPageFrame email={user.email} initial={initial}>
+          {children}
+        </ProjectsPageFrame>
+      }
+    >
+      {children}
+    </ProjectsFrame>
+  );
+}
+
+function ProjectsPageFrame({
+  children,
+  email,
+  initial,
+}: {
+  children: ReactNode;
+  email: string;
+  initial: string;
+}) {
   return (
     <div className="flex min-h-full flex-1 flex-col bg-background">
       <header className="border-b border-border bg-card/95 backdrop-blur-md">
@@ -56,7 +81,7 @@ export default async function ProjectsLayout({ children }: LayoutProps<"/project
               <span className="flex min-w-0 flex-col leading-tight">
                 <span className="text-body-sm font-semibold text-foreground">Signed in</span>
                 <span className="truncate font-mono text-body-sm text-muted-foreground">
-                  {user.email}
+                  {email}
                 </span>
               </span>
             </div>

@@ -1,11 +1,11 @@
 "use client";
 
-import { ChevronRight, Package, Search, Tag } from "lucide-react";
+import { ChevronRight, Package, Tag } from "lucide-react";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 
-import { Input } from "@/components/ui/input";
 import { formatDay } from "@/lib/dates";
+import { useReleaseSearch } from "../_components/release-search-context";
 
 type ReleaseListRelease = {
   id: string;
@@ -29,7 +29,7 @@ type ReleaseListProps = {
  * Project-scoped query have already answered that.
  */
 export function ReleaseList({ projectId, releases }: ReleaseListProps) {
-  const [query, setQuery] = useState("");
+  const { query } = useReleaseSearch();
 
   const filteredReleases = useMemo(() => {
     const normalizedQuery = query.trim().toLocaleLowerCase();
@@ -51,26 +51,12 @@ export function ReleaseList({ projectId, releases }: ReleaseListProps) {
 
   return (
     <div className="flex flex-col gap-lg">
-      <label className="relative max-w-full sm:w-96">
-        <span className="sr-only">Search releases</span>
-        <Search
-          className="pointer-events-none absolute left-sm top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-          aria-hidden="true"
-        />
-        <Input
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder="Search releases or versions…"
-          className="bg-card pl-xl"
-        />
-      </label>
-
       {filteredReleases.length === 0 ? (
         <div className="rounded-xl border border-dashed border-border bg-card p-lg text-body-sm text-muted-foreground">
           No releases match this search.
         </div>
       ) : (
-        <ul className="flex flex-col gap-sm">
+      <ul className="flex flex-col gap-md">
           {filteredReleases.map((release, index) => (
             <li key={release.id}>
               <ReleaseRow latest={index === 0 && !query.trim()} projectId={projectId} release={release} />
@@ -94,7 +80,7 @@ function ReleaseRow({
   return (
     // One link, stretched over the whole row by its own `after` layer — the same treatment
     // `app/projects/page.tsx`'s `ProjectRow` uses, and for the same reason.
-    <div className="group relative flex flex-col gap-md rounded-xl border border-border bg-card p-md shadow-sm transition-colors hover:border-ring/60 hover:bg-accent/40 has-[a:focus-visible]:ring-3 has-[a:focus-visible]:ring-ring/50 sm:flex-row sm:items-center sm:justify-between">
+    <div className="group relative flex flex-col gap-md rounded-xl border border-border bg-card p-lg shadow-sm transition-colors hover:border-ring/60 hover:bg-accent/40 has-[a:focus-visible]:ring-3 has-[a:focus-visible]:ring-ring/50 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex min-w-0 items-start gap-sm sm:items-center">
         <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-secondary text-secondary-foreground">
           <Tag className="size-5" aria-hidden="true" />

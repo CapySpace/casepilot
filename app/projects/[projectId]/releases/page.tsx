@@ -3,7 +3,6 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { requireProjectMembership } from "@/lib/projects/dal";
 import { listReleases } from "@/lib/releases/dal";
 
 import { ReleaseList } from "./release-list";
@@ -22,37 +21,27 @@ export default async function ReleasesPage({
   params,
 }: PageProps<"/projects/[projectId]/releases">) {
   const { projectId } = await params;
-  const project = await requireProjectMembership(projectId);
   const releases = await listReleases(projectId);
 
   return (
     <>
-      <div className="flex flex-col gap-md border-b border-border pb-lg sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex flex-col gap-md sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-col gap-2xs">
-          <p className="text-body-sm text-muted-foreground">
-            <Link href={`/projects/${projectId}`} className="hover:text-foreground">
-              {project.name}
-            </Link>{" "}
-            / <span className="text-foreground">Releases</span>
-          </p>
           <div className="flex items-center gap-xs">
             <h1 className="font-heading text-headline-md">Releases</h1>
             {releases.length > 0 && (
-              <span className="rounded-full border border-border bg-secondary px-sm py-2xs text-body-sm tabular-nums text-secondary-foreground">
+              <span className="rounded-full border border-border bg-secondary px-sm py-2xs text-body-sm font-medium tabular-nums text-secondary-foreground">
                 {releases.length} {releases.length === 1 ? "release" : "releases"}
               </span>
             )}
           </div>
-          <p className="text-body-md text-muted-foreground">
-            Every version or milestone of {project.name} recorded here, and how many builds each holds.
-          </p>
         </div>
 
         {releases.length > 0 && (
           <Button asChild>
             <Link href={`/projects/${projectId}/releases/new`}>
               <Plus aria-hidden="true" />
-              New Release
+              Create release
             </Link>
           </Button>
         )}
