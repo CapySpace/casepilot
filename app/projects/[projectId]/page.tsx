@@ -1,16 +1,15 @@
 import { CalendarDays, Users, type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDay } from "@/lib/dates";
 import { requireProjectMembership } from "@/lib/projects/dal";
 
 /**
  * The Project overview: what this Project is, who is in it, and when it started.
  *
- * It says plainly that test cases are not here yet rather than drawing an empty frame for them. An
- * empty frame promises something is coming today; a sentence is honest about the phase. Releases and
- * Builds have both arrived — see the sidebar — so neither is named among what is missing any more.
+ * There is no longer a card naming something still missing: Releases, Builds and Cases have all
+ * arrived — see the sidebar — so nothing about this hierarchy is left for the Overview to apologise
+ * for. The next gap (test execution) belongs to a Build's own page, not this one, when it arrives.
  */
 export default async function ProjectOverviewPage({
   params,
@@ -36,18 +35,9 @@ export default async function ProjectOverviewPage({
         </Fact>
       </dl>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Nothing to test here yet</CardTitle>
-          <CardDescription>
-            Test cases arrive next. For now a project holds its people, the releases they are tracking,
-            and the builds recorded under them.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="text-body-md text-muted-foreground">
-          Invite the colleagues who will be testing with you from the members page.
-        </CardContent>
-      </Card>
+      <p className="text-body-md text-muted-foreground">
+        Invite the colleagues who will be testing with you from the members page.
+      </p>
     </>
   );
 }

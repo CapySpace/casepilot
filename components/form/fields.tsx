@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "cn";
 import { TriangleAlert, type LucideIcon } from "lucide-react";
 import { useId, type ComponentProps, type ReactNode } from "react";
 
@@ -154,6 +155,52 @@ export function TextField({ label, icon: Icon, error, hint, note, id, ...props }
           {...props}
         />
       </div>
+    </FieldFrame>
+  );
+}
+
+type SelectFieldProps = ComponentProps<"select"> & {
+  label: string;
+  error?: string;
+  hint?: ReactNode;
+  note?: ReactNode;
+};
+
+/** An enum field — a fixed, small set of values with no need for a leading icon or free text. */
+export function SelectField({
+  label,
+  error,
+  hint,
+  note,
+  id,
+  className,
+  children,
+  ...props
+}: SelectFieldProps) {
+  const { fieldId, errorId, hintId, describedBy } = useFieldDescription({ id, hint, error });
+
+  return (
+    <FieldFrame
+      fieldId={fieldId}
+      label={label}
+      note={note}
+      hint={hint}
+      hintId={hintId}
+      errorId={errorId}
+      error={error}
+    >
+      <select
+        id={fieldId}
+        aria-invalid={error !== undefined}
+        aria-describedby={describedBy}
+        className={cn(
+          "h-11 w-full rounded-lg border border-input bg-transparent px-3 text-body-md outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
+          className,
+        )}
+        {...props}
+      >
+        {children}
+      </select>
     </FieldFrame>
   );
 }

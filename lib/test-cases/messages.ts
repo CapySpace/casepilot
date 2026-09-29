@@ -43,4 +43,12 @@ export const testCaseMessages = {
   stepExpectedResultTooLong: `A step's expected result can be at most ${MAXIMUM_STEP_EXPECTED_RESULT_LENGTH} characters.`,
 
   tooManySteps: `A test case can have at most ${MAXIMUM_STEPS} steps.`,
+
+  /**
+   * The catch-all, for a database that refused something the form thought was fine.
+   *
+   * It does not say "try again" as an instruction, for the reason `buildMessages.couldNotCreate`
+   * gives: the one thing this message knows is that something unexpected happened.
+   */
+  couldNotCreate: "Something went wrong creating the test case. Nothing has been saved.",
 } as const;

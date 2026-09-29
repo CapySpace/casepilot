@@ -184,7 +184,7 @@ test.describe("what the Add Build form refuses", () => {
 });
 
 test.describe("Build Details", () => {
-  test("shows the Build's number and description, and that test cases are not here yet", async ({
+  test("shows the Build's number and description, and its (empty) Test Cases section", async ({
     page,
   }) => {
     const anna = await signedInUser();
@@ -197,7 +197,9 @@ test.describe("Build Details", () => {
 
     await expect(page.getByRole("heading", { level: 1, name: "Build 100" })).toBeVisible();
     await expect(page.getByText("Nightly regression run.")).toBeVisible();
-    await expect(page.getByText("Test cases are not here yet")).toBeVisible();
+    // Test cases are real from Phase 3 on — see tests/e2e/test-cases.spec.ts for the full behaviour;
+    // this only checks that Build Details is honest about a Build with none yet.
+    await expect(page.getByText("No test cases yet")).toBeVisible();
   });
 
   test("clicking a Build in the list opens its Details", async ({ page }) => {

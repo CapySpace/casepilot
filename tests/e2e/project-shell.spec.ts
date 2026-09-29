@@ -11,7 +11,7 @@ import { createProject, projectWithMember } from "../support/projects";
  * tests navigate by URL as freely as a User would by bookmark.
  */
 
-test("the overview names the Project and is honest about what is not here yet", async ({ page }) => {
+test("the overview names the Project and points at inviting colleagues", async ({ page }) => {
   const anna = await signedInUser();
   const peter = await signedInUser();
   const project = await projectWithMember(anna, peter, "Mobile Banking Application");
@@ -22,7 +22,10 @@ test("the overview names the Project and is honest about what is not here yet", 
   await expect(page.getByRole("heading", { level: 1, name: "Mobile Banking Application" })).toBeVisible();
   await expect(page.getByText("2 members")).toBeVisible();
   await expect(page.getByText(new RegExp(`Created \\d{1,2} \\w+ ${new Date().getFullYear()}`))).toBeVisible();
-  await expect(page.getByText(/Test cases arrive next/)).toBeVisible();
+  // Releases, Builds and Cases have all arrived by Phase 3 — see tests/e2e/releases.spec.ts,
+  // builds.spec.ts and test-cases.spec.ts — so there is nothing left in this hierarchy for the
+  // Overview to apologise for; it only points onward to Members.
+  await expect(page.getByText(/Invite the colleagues who will be testing with you/)).toBeVisible();
 });
 
 test("the overview shows a description when there is one, and does not invent one when there is not", async ({

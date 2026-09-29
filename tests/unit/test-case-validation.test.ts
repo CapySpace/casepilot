@@ -13,7 +13,12 @@ import {
   MAXIMUM_TITLE_LENGTH,
 } from "@/lib/test-cases/limits";
 import { testCaseMessages } from "@/lib/test-cases/messages";
-import { validateSteps, validateTestCaseDetails } from "@/lib/test-cases/validation";
+import {
+  DEFAULT_TEST_CASE_PRIORITY,
+  DEFAULT_TEST_CASE_STATUS,
+  validateSteps,
+  validateTestCaseDetails,
+} from "@/lib/test-cases/validation";
 
 describe("validating a Case's details", () => {
   it("accepts a title on its own", () => {
@@ -246,6 +251,16 @@ describe("the stated limits", () => {
     expect(sql).toContain(
       `char_length(step ->> 'expectedResult') <= ${MAXIMUM_STEP_EXPECTED_RESULT_LENGTH}`,
     );
+  });
+
+  it("are the defaults the database assigns", () => {
+    const migrations = join("supabase", "migrations");
+    const sql = readdirSync(migrations)
+      .map((file) => readFileSync(join(migrations, file), "utf8"))
+      .join("\n");
+
+    expect(sql).toContain(`default '${DEFAULT_TEST_CASE_PRIORITY}'`);
+    expect(sql).toContain(`default '${DEFAULT_TEST_CASE_STATUS}'`);
   });
 
   it("are stated in the copy the form shows", () => {

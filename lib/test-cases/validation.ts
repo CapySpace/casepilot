@@ -9,6 +9,18 @@ import {
 } from "./limits";
 import { testCaseMessages } from "./messages";
 
+export const TEST_CASE_PRIORITIES = ["Low", "Medium", "High", "Critical"] as const;
+export type TestCasePriority = (typeof TEST_CASE_PRIORITIES)[number];
+
+/** What a new Case gets when nobody picks one — must agree with the column default in the migration. */
+export const DEFAULT_TEST_CASE_PRIORITY: TestCasePriority = "Medium";
+
+export const TEST_CASE_STATUSES = ["Draft", "Ready", "Deprecated"] as const;
+export type TestCaseStatus = (typeof TEST_CASE_STATUSES)[number];
+
+/** What a new Case gets when nobody picks one — must agree with the column default in the migration. */
+export const DEFAULT_TEST_CASE_STATUS: TestCaseStatus = "Draft";
+
 export type TestCaseDetails = {
   title: string;
   description: string;
