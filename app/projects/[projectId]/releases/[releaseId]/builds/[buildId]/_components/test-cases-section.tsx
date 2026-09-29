@@ -15,6 +15,8 @@ import {
   type TestCaseStatus,
 } from "@/lib/test-cases/validation";
 
+import { Chip } from "./status-chips";
+
 /** The unfiltered value for each `<select>` — never a real Priority or Status, so a plain string. */
 const ANY = "";
 
@@ -219,13 +221,5 @@ function TestCaseRow({
         />
       </div>
     </div>
-  );
-}
-
-function Chip({ children }: { children: string }) {
-  return (
-    <span className="rounded-full border border-border bg-secondary px-2 py-0.5 text-body-sm text-secondary-foreground">
-      {children}
-    </span>
   );
 }

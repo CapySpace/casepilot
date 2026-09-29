@@ -6,7 +6,9 @@ import { describe, expect, it } from "vitest";
 import { MAXIMUM_NOTES_LENGTH } from "@/lib/test-attempts/limits";
 import { testResultMessages } from "@/lib/test-attempts/messages";
 import {
+  DEFAULT_TEST_ATTEMPT_STATUS,
   DEFAULT_TEST_RESULT_OUTCOME,
+  TEST_ATTEMPT_STATUSES,
   TEST_RESULT_OUTCOMES,
   validateNotes,
 } from "@/lib/test-attempts/validation";
@@ -41,6 +43,16 @@ describe("a Result's Outcome", () => {
   });
 });
 
+describe("an Attempt's Status", () => {
+  it("is one of In Progress or Completed", () => {
+    expect(TEST_ATTEMPT_STATUSES).toEqual(["In Progress", "Completed"]);
+  });
+
+  it("defaults to In Progress, matching the column default", () => {
+    expect(DEFAULT_TEST_ATTEMPT_STATUS).toBe("In Progress");
+  });
+});
+
 describe("the stated limits", () => {
   it("are the limits the database enforces", () => {
     const migrations = join("supabase", "migrations");
@@ -50,6 +62,7 @@ describe("the stated limits", () => {
 
     expect(sql).toContain(`check (char_length(trim(notes)) between 1 and ${MAXIMUM_NOTES_LENGTH})`);
     expect(sql).toContain(`check (outcome in ('${TEST_RESULT_OUTCOMES.join("', '")}'))`);
+    expect(sql).toContain(`check (status in ('${TEST_ATTEMPT_STATUSES.join("', '")}'))`);
   });
 
   it("are the defaults the database assigns", () => {
@@ -59,6 +72,7 @@ describe("the stated limits", () => {
       .join("\n");
 
     expect(sql).toContain(`default '${DEFAULT_TEST_RESULT_OUTCOME}'`);
+    expect(sql).toContain(`default '${DEFAULT_TEST_ATTEMPT_STATUS}'`);
   });
 
   it("are stated in the copy the form shows", () => {

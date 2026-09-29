@@ -18,6 +18,42 @@ import { describe, expect, it } from "vitest";
 const STATUS_UTILITIES =
   /\b(?:bg|text|border|ring|fill|stroke)-(?:passed|failed|blocked|skipped|not-run)\b/;
 
+/**
+ * The only files entitled to these tokens: the ones rendering an actual Outcome verdict
+ * (`OutcomeChip`) or deriving from one (a Testing Attempt's medallion, coloured by the Outcomes
+ * recorded within it — see `attemptMedallionTone`). Everything else that might look tempting — a
+ * Case's own Status or Priority, an Attempt's own lifecycle Status (`AttemptStatusChip`, defined in
+ * the same file as `OutcomeChip` but deliberately *not* using these tokens), a Role — stays on the
+ * plain neutral chip precisely so a status colour never means two different things depending on which
+ * page it's on. `DESIGN.md`'s status scale sat named but unused in `app/projects` through Phase 3,
+ * which is why this test could start as a blanket "nowhere in this tree" rule; Phase 4 is the first to
+ * have a real Outcome to colour, and the rule now needs to say *which* files, not *whether any*.
+ */
+const ALLOWED_OUTCOME_FILES = [
+  join(
+    "app",
+    "projects",
+    "[projectId]",
+    "releases",
+    "[releaseId]",
+    "builds",
+    "[buildId]",
+    "_components",
+    "status-chips.tsx",
+  ),
+  join(
+    "app",
+    "projects",
+    "[projectId]",
+    "releases",
+    "[releaseId]",
+    "builds",
+    "[buildId]",
+    "_components",
+    "testing-attempts-section.tsx",
+  ),
+];
+
 function filesUnder(directory: string): string[] {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
     const path = join(directory, entry.name);
@@ -27,9 +63,9 @@ function filesUnder(directory: string): string[] {
 }
 
 describe("the Project interface", () => {
-  it("spends no status colour on anything that is not a status", () => {
-    const offenders = filesUnder(join("app", "projects")).filter((path) =>
-      STATUS_UTILITIES.test(readFileSync(path, "utf8")),
+  it("spends no status colour on anything that is not a status, outside the Outcome chip and the Attempt medallion it derives from", () => {
+    const offenders = filesUnder(join("app", "projects")).filter(
+      (path) => STATUS_UTILITIES.test(readFileSync(path, "utf8")) && !ALLOWED_OUTCOME_FILES.includes(path),
     );
 
     expect(offenders).toEqual([]);

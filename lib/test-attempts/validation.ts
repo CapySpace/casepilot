@@ -7,6 +7,12 @@ export type TestResultOutcome = (typeof TEST_RESULT_OUTCOMES)[number];
 /** What a newly-started Attempt's Results get — must agree with the column default in the migration. */
 export const DEFAULT_TEST_RESULT_OUTCOME: TestResultOutcome = "Not Run";
 
+export const TEST_ATTEMPT_STATUSES = ["In Progress", "Completed"] as const;
+export type TestAttemptStatus = (typeof TEST_ATTEMPT_STATUSES)[number];
+
+/** What a newly-started Attempt gets — must agree with the column default in the migration. */
+export const DEFAULT_TEST_ATTEMPT_STATUS: TestAttemptStatus = "In Progress";
+
 /**
  * Validates a Result's notes: optional, but once started must say something — the same reading
  * `test_cases`' own optional prose fields get, not "nobody wrote one" — and bounded by

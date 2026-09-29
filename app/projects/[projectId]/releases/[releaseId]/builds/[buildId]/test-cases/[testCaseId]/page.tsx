@@ -6,10 +6,12 @@ import { Button } from "@/components/ui/button";
 import { getBuild } from "@/lib/builds/dal";
 import { formatDay } from "@/lib/dates";
 import { listProjectPeople, requireProjectMembership } from "@/lib/projects/dal";
+import { nameForPerson } from "@/lib/projects/people";
 import { getRelease } from "@/lib/releases/dal";
 import { getTestCase } from "@/lib/test-cases/dal";
 import { testCaseMessages } from "@/lib/test-cases/messages";
 
+import { Chip } from "../../_components/status-chips";
 import { DeleteTestCase } from "./delete-test-case";
 
 /**
@@ -32,9 +34,7 @@ export default async function TestCaseDetailsPage({
   // The only door onto a Member's name from another Member's page — see `listProjectPeople`'s own
   // comment on why `project_people` is the one deliberate widening of the definer pattern.
   const people = await listProjectPeople(projectId);
-  const nameFor = (userId: string) =>
-    people.find((person) => person.userId === userId)?.fullName ??
-    testCaseMessages.personNoLongerInProject;
+  const nameFor = (userId: string) => nameForPerson(people, userId, testCaseMessages.personNoLongerInProject);
 
   const buildHref = `/projects/${projectId}/releases/${release.id}/builds/${build.id}`;
 
@@ -133,13 +133,5 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
       <h2 className="font-heading text-title-lg">{title}</h2>
       {children}
     </div>
-  );
-}
-
-function Chip({ children }: { children: string }) {
-  return (
-    <span className="rounded-full border border-border bg-secondary px-2 py-0.5 text-body-sm text-secondary-foreground">
-      {children}
-    </span>
   );
 }

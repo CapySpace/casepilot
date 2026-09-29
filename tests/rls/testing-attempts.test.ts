@@ -68,6 +68,108 @@ describe("starting an Attempt", () => {
   });
 });
 
+describe("start_test_attempt", () => {
+  it("creates the Attempt and one Not Run Result per eligible Case, snapshotting its fields", async () => {
+    const anna = await signedInUser();
+    const { build } = await projectBuild(anna);
+    const testCase = await createTestCase(anna, build, "Sign in with valid credentials");
+    await anna.client
+      .from("test_cases")
+      .update({ description: "Checks the happy path.", preconditions: "An account exists." })
+      .eq("id", testCase);
+
+    const { data: attempt, error } = await anna.client
+      .rpc("start_test_attempt", { p_build_id: build })
+      .single();
+
+    expect(error).toBeNull();
+    expect(attempt).toMatchObject({ build_id: build, status: "In Progress" });
+
+    const { data: results } = await anna.client
+      .from("test_results")
+      .select(
+        "test_case_id, outcome, test_case_title_snapshot, test_case_description_snapshot, test_case_preconditions_snapshot",
+      )
+      .eq("testing_attempt_id", (attempt as { id: string }).id);
+
+    expect(results).toEqual([
+      {
+        test_case_id: testCase,
+        outcome: "Not Run",
+        test_case_title_snapshot: "Sign in with valid credentials",
+        test_case_description_snapshot: "Checks the happy path.",
+        test_case_preconditions_snapshot: "An account exists.",
+      },
+    ]);
+  });
+
+  it("excludes a Case added to the Build after the Attempt starts", async () => {
+    const anna = await signedInUser();
+    const { build } = await projectBuild(anna);
+    await createTestCase(anna, build, "Existing case");
+
+    const { data: attempt } = await anna.client
+      .rpc("start_test_attempt", { p_build_id: build })
+      .single<{ id: string }>();
+    await createTestCase(anna, build, "Added after the Attempt started");
+
+    const { data: results } = await anna.client
+      .from("test_results")
+      .select("test_case_title_snapshot")
+      .eq("testing_attempt_id", attempt!.id);
+
+    expect(results).toEqual([{ test_case_title_snapshot: "Existing case" }]);
+  });
+
+  it("excludes a soft-deleted Case", async () => {
+    const anna = await signedInUser();
+    const { build } = await projectBuild(anna);
+    const deleted = await createTestCase(anna, build, "Deleted case");
+    await anna.client
+      .from("test_cases")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("id", deleted);
+    await createTestCase(anna, build, "Live case");
+
+    const { data: attempt } = await anna.client
+      .rpc("start_test_attempt", { p_build_id: build })
+      .single<{ id: string }>();
+
+    const { data: results } = await anna.client
+      .from("test_results")
+      .select("test_case_title_snapshot")
+      .eq("testing_attempt_id", attempt!.id);
+
+    expect(results).toEqual([{ test_case_title_snapshot: "Live case" }]);
+  });
+
+  it("refuses to start on a Build with no eligible Cases, and creates nothing", async () => {
+    const anna = await signedInUser();
+    const { build } = await projectBuild(anna);
+
+    const { error } = await anna.client.rpc("start_test_attempt", { p_build_id: build }).single();
+
+    expect(error).not.toBeNull();
+
+    const { data: attempts } = await anna.client.from("test_attempts").select("id").eq("build_id", build);
+    expect(attempts).toEqual([]);
+  });
+
+  it("refuses a non-member the same way it refuses an empty Build", async () => {
+    const anna = await signedInUser();
+    const stranger = await signedInUser();
+    const { build } = await projectBuild(anna);
+    await createTestCase(anna, build);
+
+    const { error } = await stranger.client.rpc("start_test_attempt", { p_build_id: build }).single();
+
+    expect(error).not.toBeNull();
+
+    const { data: attempts } = await anna.client.from("test_attempts").select("id").eq("build_id", build);
+    expect(attempts).toEqual([]);
+  });
+});
+
 describe("an Attempt's number", () => {
   it("is assigned automatically, in order, per Build", async () => {
     const anna = await signedInUser();
