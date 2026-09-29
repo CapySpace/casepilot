@@ -7,6 +7,7 @@ import { verifySession } from "@/lib/auth/dal";
 import { createClient } from "@/lib/supabase/server";
 
 import { outcomeBreakdown } from "./breakdown";
+import type { ReportAttempt } from "./report";
 import type { TestAttemptStatus, TestResultOutcome } from "./validation";
 
 /**
@@ -210,4 +211,36 @@ export const getTestAttempt = cache(async (buildId: string, attemptId: string): 
       executedAt: result.executed_at,
     })),
   };
+});
+
+type ReportAttemptRow = {
+  attempt_number: number;
+  results: { test_case_id: string; outcome: TestResultOutcome }[];
+};
+
+/**
+ * Every Attempt taken against a Build, reduced to just what the Build Report's aggregation function
+ * (`buildReportMetrics`) needs: which Case each Result concerns, its Outcome, and the `attemptNumber`
+ * that decides which Attempt is "latest" for that Case. In Progress and Completed Attempts are
+ * returned alike and in no particular order — the aggregation function doesn't care about status or
+ * ordering, only about comparing `attemptNumber`s itself.
+ */
+export const listTestAttemptsForReport = cache(async (buildId: string): Promise<ReportAttempt[]> => {
+  await verifySession();
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("test_attempts")
+    .select("attempt_number, results:test_results(test_case_id, outcome)")
+    .eq("build_id", buildId)
+    .returns<ReportAttemptRow[]>();
+
+  if (error) {
+    throw new Error(`Could not read the Report data of Build ${buildId}: ${error.message}`);
+  }
+
+  return (data ?? []).map((row) => ({
+    attemptNumber: row.attempt_number,
+    results: row.results.map((result) => ({ caseId: result.test_case_id, outcome: result.outcome })),
+  }));
 });

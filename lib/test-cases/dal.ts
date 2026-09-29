@@ -66,6 +66,31 @@ export const listTestCases = cache(async (buildId: string): Promise<TestCaseSumm
   }));
 });
 
+/**
+ * The ids of every `Ready` Case under a Build — the subset the Build Report's totals are computed
+ * from, per the "only Ready Cases count" decision. Filtered at the query, the same way `deleted_at`
+ * is filtered here rather than left to the caller: the DAL decides which subset a page gets, not the
+ * page itself.
+ */
+export const listReadyTestCaseIds = cache(async (buildId: string): Promise<string[]> => {
+  await verifySession();
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("test_cases")
+    .select("id")
+    .eq("build_id", buildId)
+    .eq("status", "Ready")
+    .is("deleted_at", null)
+    .returns<{ id: string }[]>();
+
+  if (error) {
+    throw new Error(`Could not read the Ready Cases of Build ${buildId}: ${error.message}`);
+  }
+
+  return (data ?? []).map((row) => row.id);
+});
+
 /** A Case, as seen from inside it. */
 export type TestCase = {
   id: string;

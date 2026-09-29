@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { Button } from "@/components/ui/button";
 import { getBuild } from "@/lib/builds/dal";
 import { formatDay } from "@/lib/dates";
 import { listProjectPeople, requireProjectMembership } from "@/lib/projects/dal";
@@ -45,9 +46,16 @@ export default async function BuildDetailsPage({
         >
           {release.version}
         </Link>
-        <h1 className="font-mono text-headline-md font-semibold text-reference">
-          Build {build.buildNumber}
-        </h1>
+        <div className="flex flex-wrap items-center justify-between gap-md">
+          <h1 className="font-mono text-headline-md font-semibold text-reference">
+            Build {build.buildNumber}
+          </h1>
+          <Button asChild variant="secondary" size="sm">
+            <Link href={`/projects/${projectId}/releases/${release.id}/builds/${build.id}/report`}>
+              View Report
+            </Link>
+          </Button>
+        </div>
       </div>
 
       <p className="text-body-md text-muted-foreground">

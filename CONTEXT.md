@@ -90,3 +90,10 @@ these five before this phase existed, and Phase 3's own spec called them "the fi
 verdicts... arriving in Phase 4"; this phase conforms to that naming rather than inventing "Not
 Tested"). Calling it a status would let it drift toward meaning "where this Result is in some
 process," which is exactly the ambiguity Case's and Attempt's Status already occupy.
+
+"Not Tested" still isn't an Outcome, but Phase 5's dashboards need to name a real distinction that
+the five Outcomes don't cover on their own: a Case with **no Result at all** (no Attempt has ever
+snapshotted it) is a different situation from a Case whose latest Result exists but is still Not
+Run (an Attempt reached it and hasn't been given a verdict yet). Reporting calls the first one
+**Not Tested** — a dashboard-computed bucket, never a stored value — precisely to keep it out of
+the Outcome enum it was excluded from the first time.

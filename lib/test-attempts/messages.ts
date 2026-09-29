@@ -69,4 +69,11 @@ export const testResultMessages = {
    * said the same way.
    */
   personNoLongerInProject: "someone who has since left the project",
+
+  /** Said on the Build Report when the Build has no `Ready` Case to compute anything from — distinct
+   * from `noAttemptsYetTitle`, since a Build can have Attempts and still have nothing Ready left in
+   * it (every Case Draft or Deprecated), and vice versa. */
+  noReadyCasesTitle: "No ready test cases yet",
+  noReadyCasesDescription:
+    "Mark at least one test case Ready to start seeing this build's testing progress here.",
 } as const;

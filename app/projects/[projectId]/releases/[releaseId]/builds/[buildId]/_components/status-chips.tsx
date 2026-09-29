@@ -24,11 +24,19 @@ export const OUTCOME_TOKENS: Record<TestResultOutcome, { dot: string; container:
   Skipped: { dot: "bg-skipped", container: "bg-skipped-container", text: "text-skipped-on-container" },
 };
 
+/** The bare coloured marker, by class rather than by Outcome — what a segment that isn't itself a
+ * `TestResultOutcome` (the Build Report's Not Tested, sharing Not Run's token) still needs to render
+ * the same dot with. `OutcomeDot` is the Outcome-typed convenience over this that most callers want;
+ * this is the one to reach for when the caller only has a token's class to hand. */
+export function StatusDot({ className }: { className: string }) {
+  return <span aria-hidden="true" className={`size-2 rounded-full ${className}`} />;
+}
+
 /** The saturated marker alone — `OutcomeChip`'s own dot, and the one `ProgressBar`'s legend and
  * `ResultPanel`'s recording buttons reuse rather than hand-typing the same span a third and fourth
  * time. */
 export function OutcomeDot({ outcome }: { outcome: TestResultOutcome }) {
-  return <span className={`size-2 rounded-full ${OUTCOME_TOKENS[outcome].dot}`} aria-hidden="true" />;
+  return <StatusDot className={OUTCOME_TOKENS[outcome].dot} />;
 }
 
 export function OutcomeChip({ outcome }: { outcome: TestResultOutcome }) {
