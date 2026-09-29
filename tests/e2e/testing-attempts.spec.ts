@@ -34,8 +34,10 @@ test("starting a testing attempt redirects to its execution page, showing the Ca
     new RegExp(`/projects/${project}/releases/${release}/builds/${build}/attempts/.+/execute$`),
   );
   await expect(page.getByRole("heading", { name: "Attempt #1" })).toBeVisible();
-  await expect(page.getByText("Sign in with valid credentials")).toBeVisible();
-  await expect(page.getByText("Not Run")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Sign in with valid credentials" })).toBeVisible();
+  await expect(
+    page.getByRole("navigation", { name: "Jump to a Case" }).getByText("Not Run"),
+  ).toBeVisible();
   await expect(page.getByText("Tested: 0 / 1")).toBeVisible();
 });
 

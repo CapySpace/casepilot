@@ -25,6 +25,17 @@ export const testResultMessages = {
 
   couldNotStart: "Something went wrong starting the testing attempt. Nothing has been saved.",
 
+  couldNotRecord: "Something went wrong saving this result. Try again.",
+
+  /**
+   * The one failure worth naming specifically rather than folding into `couldNotRecord`: the freeze
+   * trigger refusing a write because the Attempt was completed — by anyone, possibly moments ago —
+   * while this Member still had the execution screen open. Said plainly, because "something went
+   * wrong" would be true but unhelpful: nothing is broken, the run just finished under them.
+   */
+  attemptCompletedWhileEditing:
+    "This attempt was completed while you were working on it. Your change was not saved.",
+
   attemptLabel(attemptNumber: number) {
     return `Attempt #${attemptNumber}`;
   },

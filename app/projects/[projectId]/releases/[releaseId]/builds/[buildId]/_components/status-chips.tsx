@@ -1,6 +1,3 @@
-import { cva } from "class-variance-authority";
-import { cn } from "cn";
-
 import type { TestAttemptStatus, TestResultOutcome } from "@/lib/test-attempts/validation";
 
 /**
@@ -14,37 +11,32 @@ import type { TestAttemptStatus, TestResultOutcome } from "@/lib/test-attempts/v
  * as the plain neutral pill `AttemptStatusChip` reuses, rather than a saturated colour.
  */
 
-const outcomeChipVariants = cva(
-  "inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-body-sm",
-  {
-    variants: {
-      outcome: {
-        "Not Run": "bg-not-run-container text-not-run-on-container",
-        Passed: "bg-passed-container text-passed-on-container",
-        Failed: "bg-failed-container text-failed-on-container",
-        Blocked: "bg-blocked-container text-blocked-on-container",
-        Skipped: "bg-skipped-container text-skipped-on-container",
-      } satisfies Record<TestResultOutcome, string>,
-    },
-  },
-);
+/**
+ * The status-scale triplet for each Outcome — exported, not private to `OutcomeChip`, because ticket
+ * 03's Progress Bar and its Outcome-recording buttons need the same three classes for a segment, a
+ * legend dot and a selected control respectively. One source, so all three can never drift apart.
+ */
+export const OUTCOME_TOKENS: Record<TestResultOutcome, { dot: string; container: string; text: string }> = {
+  "Not Run": { dot: "bg-not-run", container: "bg-not-run-container", text: "text-not-run-on-container" },
+  Passed: { dot: "bg-passed", container: "bg-passed-container", text: "text-passed-on-container" },
+  Failed: { dot: "bg-failed", container: "bg-failed-container", text: "text-failed-on-container" },
+  Blocked: { dot: "bg-blocked", container: "bg-blocked-container", text: "text-blocked-on-container" },
+  Skipped: { dot: "bg-skipped", container: "bg-skipped-container", text: "text-skipped-on-container" },
+};
 
-const outcomeDotVariants = cva("size-2 rounded-full", {
-  variants: {
-    outcome: {
-      "Not Run": "bg-not-run",
-      Passed: "bg-passed",
-      Failed: "bg-failed",
-      Blocked: "bg-blocked",
-      Skipped: "bg-skipped",
-    } satisfies Record<TestResultOutcome, string>,
-  },
-});
+/** The saturated marker alone — `OutcomeChip`'s own dot, and the one `ProgressBar`'s legend and
+ * `ResultPanel`'s recording buttons reuse rather than hand-typing the same span a third and fourth
+ * time. */
+export function OutcomeDot({ outcome }: { outcome: TestResultOutcome }) {
+  return <span className={`size-2 rounded-full ${OUTCOME_TOKENS[outcome].dot}`} aria-hidden="true" />;
+}
 
 export function OutcomeChip({ outcome }: { outcome: TestResultOutcome }) {
+  const token = OUTCOME_TOKENS[outcome];
+
   return (
-    <span className={cn(outcomeChipVariants({ outcome }))}>
-      <span className={cn(outcomeDotVariants({ outcome }))} aria-hidden="true" />
+    <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-body-sm ${token.container} ${token.text}`}>
+      <OutcomeDot outcome={outcome} />
       {outcome}
     </span>
   );

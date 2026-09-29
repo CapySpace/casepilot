@@ -20,14 +20,16 @@ const STATUS_UTILITIES =
 
 /**
  * The only files entitled to these tokens: the ones rendering an actual Outcome verdict
- * (`OutcomeChip`) or deriving from one (a Testing Attempt's medallion, coloured by the Outcomes
- * recorded within it — see `attemptMedallionTone`). Everything else that might look tempting — a
- * Case's own Status or Priority, an Attempt's own lifecycle Status (`AttemptStatusChip`, defined in
- * the same file as `OutcomeChip` but deliberately *not* using these tokens), a Role — stays on the
- * plain neutral chip precisely so a status colour never means two different things depending on which
- * page it's on. `DESIGN.md`'s status scale sat named but unused in `app/projects` through Phase 3,
- * which is why this test could start as a blanket "nowhere in this tree" rule; Phase 4 is the first to
- * have a real Outcome to colour, and the rule now needs to say *which* files, not *whether any*.
+ * (`OutcomeChip`, and the Outcome-recording buttons in `ResultPanel` that share its token map), or
+ * deriving from one (a Testing Attempt's medallion, coloured by the Outcomes recorded within it — see
+ * `attemptMedallionTone` — and the Progress Bar's segmented track and legend, `DESIGN.md` §4's
+ * "product's signature object"). Everything else that might look tempting — a Case's own Status or
+ * Priority, an Attempt's own lifecycle Status (`AttemptStatusChip`, defined in the same file as
+ * `OutcomeChip` but deliberately *not* using these tokens), a Role — stays on the plain neutral chip
+ * precisely so a status colour never means two different things depending on which page it's on.
+ * `DESIGN.md`'s status scale sat named but unused in `app/projects` through Phase 3, which is why this
+ * test could start as a blanket "nowhere in this tree" rule; Phase 4 is the first to have a real
+ * Outcome to colour, and the rule now needs to say *which* files, not *whether any*.
  */
 const ALLOWED_OUTCOME_FILES = [
   join(
@@ -51,6 +53,17 @@ const ALLOWED_OUTCOME_FILES = [
     "[buildId]",
     "_components",
     "testing-attempts-section.tsx",
+  ),
+  join(
+    "app",
+    "projects",
+    "[projectId]",
+    "releases",
+    "[releaseId]",
+    "builds",
+    "[buildId]",
+    "_components",
+    "progress-bar.tsx",
   ),
 ];
 

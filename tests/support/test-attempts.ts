@@ -41,3 +41,19 @@ export async function createTestResult(
 
   return data.id as string;
 }
+
+/**
+ * Completes an Attempt directly — there is no "Complete Attempt" UI yet (ticket 04's own work), so
+ * this is how a test arranges "already Completed" as a precondition, or simulates another Member
+ * completing it while the first is still on the execution screen.
+ */
+export async function completeTestAttempt(member: ActingUser, testingAttemptId: string): Promise<void> {
+  const { error } = await member.client
+    .from("test_attempts")
+    .update({ status: "Completed", completed_at: new Date().toISOString() })
+    .eq("id", testingAttemptId);
+
+  if (error) {
+    throw new Error(`Could not complete Attempt ${testingAttemptId} as ${member.email}: ${error.message}`);
+  }
+}
