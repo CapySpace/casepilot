@@ -49,6 +49,22 @@ that Build specifically, not to the Release or Project — a Case written agains
 automatically part of Build 101. See ADR-0005.
 _Avoid_: Legal case, matter, docket, test scenario, script
 
+**Attempt**:
+One pass through a Build's Cases: started by a User, worked by whichever Users record Results against
+it, and either still open or brought to a close. Belongs to a Build, not to a single Case or to the
+User who started it — a Build may carry several Attempts, independent of one another and of any Case
+edited after they were taken. See ADR-0006.
+_Avoid_: Test run, session, execution (as a noun — "execute a Case" is fine as plain English for the
+act; the record of it is the Attempt)
+
+**Result**:
+What was found when one Case was worked within one Attempt: an Outcome, optional notes, and who
+recorded it. Belongs to an Attempt and points at the Case it concerns, but does not read that Case
+live — it holds its own copy of the Case's title, description, preconditions, steps and expected
+result as they stood the moment the Attempt began, so a later edit to the Case cannot reach back and
+change what an already-recorded Result meant. See ADR-0006.
+_Avoid_: Test result, execution record
+
 ### Notes on contested terms
 
 **Account** is deliberately absent. It was doing three jobs at once — the person, the credentials,
@@ -62,3 +78,15 @@ implies belonging where none has been established.
 **Case** is the project's most dangerous word. The Stitch design system's prose drifted into
 describing CasePilot as legal-tech serving "legal-tech specialists" with "case docket numbers",
 because nothing pinned the word down. In CasePilot a Case is always a *test* case.
+
+**Status** now names two different things, and a third was deliberately kept out of the word. A
+Case has a Status (Draft, Ready, Deprecated) and an Attempt has a Status (In Progress, Completed) —
+both are genuinely "where this entity stands in its own lifecycle", and which entity's Status is
+meant is always evident from context, the same way "a Project's Owner" and "an Invitation's Owner"
+would not need disambiguating if the latter existed. What a Result carries is a different kind of
+fact — not where it stands, but what was found — so it is not a Status at all: it is an **Outcome**
+(Not Run, Passed, Failed, Blocked, Skipped — `DESIGN.md`'s status scale already named and coloured
+these five before this phase existed, and Phase 3's own spec called them "the five execution
+verdicts... arriving in Phase 4"; this phase conforms to that naming rather than inventing "Not
+Tested"). Calling it a status would let it drift toward meaning "where this Result is in some
+process," which is exactly the ambiguity Case's and Attempt's Status already occupy.
